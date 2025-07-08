@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Optima - Hub étudiant intelligent",
+  title: "OptiLearn - Hub étudiant intelligent",
   description: "Uploadez vos PDFs, générez des questions avec l'IA et révisez efficacement",
 };
 

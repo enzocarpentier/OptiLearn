@@ -1,8 +1,39 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# OptiLearn
 
-## Getting Started
+OptiLearn est une application web intelligente qui transforme vos documents PDF en quiz interactifs pour optimiser votre apprentissage.
 
-First, run the development server:
+## Fonctionnalités
+
+- 📄 **Upload de PDF** : Téléchargez vos documents d'étude
+- 🧠 **Quiz intelligents** : Génération automatique de questions à partir de vos PDFs
+- 🔐 **Authentification sécurisée** : Connexion par email/mot de passe ou Google
+- 📱 **Interface moderne** : Design responsive et intuitif
+- 🌙 **Mode sombre** : Interface adaptable selon vos préférences
+
+## Technologies utilisées
+
+- **Frontend** : Next.js 15, React 18, TypeScript, Tailwind CSS
+- **Backend** : Firebase Authentication, Firestore
+- **Déploiement** : Vercel (recommandé)
+
+## Installation et développement
+
+1. Clonez le repository :
+```bash
+git clone [votre-repo]
+cd optilearn
+```
+
+2. Installez les dépendances :
+```bash
+npm install
+```
+
+3. Configurez Firebase (voir `FIREBASE_SETUP.md`)
+
+4. Créez un fichier `.env.local` avec vos clés Firebase
+
+5. Lancez le serveur de développement :
 
 ```bash
 npm run dev
@@ -14,23 +45,27 @@ pnpm dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+L'application sera disponible sur [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Structure du projet
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+src/
+├── app/                    # Pages Next.js App Router
+│   ├── dashboard/         # Tableau de bord utilisateur
+│   ├── login/            # Page de connexion
+│   ├── signup/           # Page d'inscription
+│   ├── quiz/[id]/        # Page de quiz dynamique
+│   └── upload/           # Page d'upload PDF
+├── components/           # Composants réutilisables
+├── contexts/            # Contextes React (Auth)
+└── lib/                # Configuration Firebase
+```
 
-## Learn More
+## Déploiement
 
-To learn more about Next.js, take a look at the following resources:
+Consultez le fichier `DEPLOYMENT.md` pour les instructions de déploiement sur Vercel.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Configuration Firebase
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Consultez le fichier `FIREBASE_SETUP.md` pour configurer votre projet Firebase.

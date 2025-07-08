@@ -17,7 +17,7 @@ export default function Home() {
       {/* Header Navigation */}
       <nav className="flex items-center justify-between px-6 py-4 max-w-7xl mx-auto">
         <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-          Optima
+          OptiLearn
         </div>
         <div className="flex items-center gap-4">
           <Link href="/login" className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">
@@ -269,7 +269,7 @@ export default function Home() {
             vos révisions ?
           </h2>
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Rejoignez des milliers d'étudiants qui ont déjà optimisé leur apprentissage avec Optima.
+            Rejoignez des milliers d'étudiants qui ont déjà optimisé leur apprentissage avec OptiLearn.
           </p>
           <Link href="/signup" className="px-10 py-4 bg-white text-blue-600 rounded-full hover:bg-gray-50 transition-all duration-300 hover:scale-105 text-lg font-semibold shadow-lg">
             Commencer maintenant
@@ -281,7 +281,7 @@ export default function Home() {
       <footer className="border-t border-gray-200 dark:border-gray-800 py-12">
         <div className="max-w-7xl mx-auto px-6 text-center">
           <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
-            Optima
+            OptiLearn
           </div>
           <p className="text-gray-600 dark:text-gray-400">
             L'avenir de l'apprentissage intelligent.

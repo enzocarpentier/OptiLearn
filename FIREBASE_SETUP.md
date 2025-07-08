@@ -1,4 +1,4 @@
-# Configuration Firebase pour Optima
+# Configuration Firebase pour OptiLearn
 
 ## 🔥 Étapes de configuration Firebase
 
@@ -6,7 +6,7 @@
 
 1. Allez sur [Firebase Console](https://console.firebase.google.com/)
 2. Cliquez sur "Ajouter un projet"
-3. Nommez votre projet (ex: "optima-hub")
+3. Nommez votre projet (ex: "optiearn-app")
 4. Suivez les étapes de configuration
 
 ### 2. Activer l'authentification
@@ -21,7 +21,7 @@
 
 1. Dans **Paramètres du projet** (⚙️)
 2. Cliquez sur **Ajouter une application** > **Web** (</>)
-3. Nommez votre app (ex: "Optima Web")
+3. Nommez votre app (ex: "OptiLearn Web App")
 4. Copiez la configuration qui s'affiche
 
 ### 4. Configuration locale

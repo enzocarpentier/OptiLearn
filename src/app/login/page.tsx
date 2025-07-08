@@ -68,7 +68,7 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="text-center mb-12">
           <Link href="/" className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Optima
+            OptiLearn
           </Link>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
             Connectez-vous à votre compte

@@ -153,7 +153,7 @@ export default function QuizPage() {
           {/* Header */}
           <div className="text-center mb-12">
             <Link href="/upload" className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Optima
+              OptiLearn
             </Link>
           </div>
 
@@ -282,7 +282,7 @@ export default function QuizPage() {
       {/* Header */}
       <nav className="flex items-center justify-between px-6 py-4 max-w-4xl mx-auto">
         <Link href="/upload" className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-          Optima
+          OptiLearn
         </Link>
         <div className="flex items-center gap-4">
           <div className="text-sm text-gray-600 dark:text-gray-400">

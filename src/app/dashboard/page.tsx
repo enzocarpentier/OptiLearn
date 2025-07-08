@@ -23,7 +23,7 @@ export default function DashboardPage() {
       {/* Header */}
       <nav className="flex items-center justify-between px-6 py-4 max-w-7xl mx-auto border-b border-gray-200/50 dark:border-gray-700/50">
         <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-          Optima
+          OptiLearn
         </div>
         <div className="flex items-center gap-4">
           <div className="text-gray-600 dark:text-gray-300">
@@ -42,7 +42,7 @@ export default function DashboardPage() {
       <main className="max-w-7xl mx-auto px-6 py-12">
         <div className="text-center space-y-8">
           <h1 className="text-5xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
-            Bienvenue sur Optima
+            Bienvenue sur OptiLearn
           </h1>
           
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">

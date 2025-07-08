@@ -1,4 +1,4 @@
-# Optima - Guide de Déploiement
+# OptiLearn - Guide de Déploiement
 
 ## 🚀 Déploiement sur Vercel
 
@@ -20,7 +20,7 @@
    - Allez sur [vercel.com](https://vercel.com)
    - Connectez-vous avec votre compte GitHub
    - Cliquez sur "New Project"
-   - Sélectionnez votre repository `optima`
+   - Sélectionnez votre repository `optilearn`
    - Vercel détectera automatiquement que c'est un projet Next.js
 
 3. **Configurer les variables d'environnement**
