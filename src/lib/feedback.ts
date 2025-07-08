@@ -1,21 +1,16 @@
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from './firebase';
-import emailjs from '@emailjs/browser';
+
 
 export interface FeedbackData {
   type: 'bug' | 'feature';
   message: string;
   userAgent?: string;
   url?: string;
-  timestamp?: any;
+  timestamp?: unknown;
 }
 
-// Configuration EmailJS (à remplir avec vos vraies clés)
-const EMAILJS_CONFIG = {
-  SERVICE_ID: 'your_service_id', // À remplacer
-  TEMPLATE_ID: 'your_template_id', // À remplacer
-  PUBLIC_KEY: 'your_public_key', // À remplacer
-};
+
 
 export const submitFeedback = async (feedbackData: Omit<FeedbackData, 'timestamp' | 'userAgent' | 'url'>) => {
   try {
