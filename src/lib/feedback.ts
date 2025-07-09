@@ -1,4 +1,4 @@
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, FieldValue } from 'firebase/firestore';
 import { db } from './firebase';
 
 
@@ -7,7 +7,7 @@ export interface FeedbackData {
   message: string;
   userAgent?: string;
   url?: string;
-  timestamp?: unknown;
+  timestamp?: FieldValue | null;
 }
 
 
@@ -17,10 +17,16 @@ export const submitFeedback = async (feedbackData: Omit<FeedbackData, 'timestamp
     // Ajouter des métadonnées utiles
     const enrichedFeedback: FeedbackData = {
       ...feedbackData,
-      timestamp: serverTimestamp(),
+      timestamp: db ? serverTimestamp() : null,
       userAgent: typeof window !== 'undefined' ? navigator.userAgent : '',
       url: typeof window !== 'undefined' ? window.location.href : ''
     };
+
+    // Vérifier que db est initialisé
+    if (!db) {
+      console.error('Firebase n\'est pas initialisé');
+      return { success: false, error: 'Firebase n\'est pas initialisé' };
+    }
 
     // Ajouter le document dans la collection 'feedbacks'
     const docRef = await addDoc(collection(db, 'feedbacks'), enrichedFeedback);
