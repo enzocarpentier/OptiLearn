@@ -1,7 +1,7 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import { getAnalytics } from 'firebase/analytics';
+import { initializeApp, FirebaseApp } from 'firebase/app';
+import { getAuth, GoogleAuthProvider, Auth } from 'firebase/auth';
+import { getFirestore, Firestore } from 'firebase/firestore';
+import { getAnalytics, Analytics } from 'firebase/analytics';
 
 // Configuration Firebase
 const firebaseConfig = {
@@ -25,11 +25,11 @@ for (const field of requiredFields) {
 }
 
 // Variables pour les exports
-let app: any = null;
-let auth: any = null;
-let googleProvider: any = null;
-let db: any = null;
-let analytics: any = null;
+let app: FirebaseApp | null = null;
+let auth: Auth | null = null;
+let googleProvider: GoogleAuthProvider | null = null;
+let db: Firestore | null = null;
+let analytics: Analytics | null = null;
 
 // Si des variables sont manquantes, ne pas initialiser Firebase
 if (missingVars.length > 0) {
