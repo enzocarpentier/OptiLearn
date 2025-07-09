@@ -11,7 +11,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const { login } = useAuth();
+  const { login, firebaseConfigured } = useAuth();
   const router = useRouter();
 
   // Si Firebase n'est pas configuré, afficher un message d'avertissement

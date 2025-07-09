@@ -50,8 +50,68 @@ export default function SignupPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{[key: string]: string}>({});
   const [firebaseError, setFirebaseError] = useState('');
-  const { signup } = useAuth();
+  const { signup, firebaseConfigured } = useAuth();
   const router = useRouter();
+
+  // Si Firebase n'est pas configuré, afficher un message d'avertissement
+  if (!firebaseConfigured) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-black flex items-center justify-center px-4">
+        <div className="w-full max-w-md">
+          {/* Logo */}
+          <div className="text-center mb-12">
+            <Link href="/" className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              OptiLearn
+            </Link>
+            <p className="text-gray-600 dark:text-gray-400 mt-2">
+              Configuration requise
+            </p>
+          </div>
+
+          {/* Message de configuration */}
+          <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-gray-200/50 dark:border-gray-700/50">
+            <div className="text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 dark:bg-yellow-900/30 mb-4">
+                <svg className="h-6 w-6 text-yellow-600 dark:text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                Configuration Firebase requise
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                Pour utiliser l'authentification, vous devez d'abord configurer Firebase.
+              </p>
+              
+              <div className="text-left bg-gray-50 dark:bg-gray-700 rounded-xl p-4 mb-6">
+                <h4 className="font-medium text-gray-900 dark:text-white mb-2">📝 Étapes à suivre :</h4>
+                <ol className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                  <li>1. Créez un fichier <code className="bg-gray-200 dark:bg-gray-600 px-1 rounded">.env.local</code> à la racine du projet</li>
+                  <li>2. Ajoutez vos clés Firebase (voir console dans le navigateur)</li>
+                  <li>3. Redémarrez le serveur avec <code className="bg-gray-200 dark:bg-gray-600 px-1 rounded">npm run dev</code></li>
+                </ol>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Link 
+                  href="/"
+                  className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors"
+                >
+                  ← Retour à l'accueil
+                </Link>
+                <button 
+                  onClick={() => window.location.reload()}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors"
+                >
+                  🔄 Recharger la page
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
