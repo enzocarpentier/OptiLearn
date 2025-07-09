@@ -1,5 +1,5 @@
 import { initializeApp, FirebaseApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, Auth } from 'firebase/auth';
+import { getAuth, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
 import { getAnalytics, Analytics } from 'firebase/analytics';
 
@@ -27,7 +27,6 @@ for (const field of requiredFields) {
 // Variables pour les exports
 let app: FirebaseApp | null = null;
 let auth: Auth | null = null;
-let googleProvider: GoogleAuthProvider | null = null;
 let db: Firestore | null = null;
 let analytics: Analytics | null = null;
 
@@ -45,7 +44,6 @@ if (missingVars.length > 0) {
   
   // Laisser les valeurs à null
   auth = null;
-  googleProvider = null;
   db = null;
   analytics = null;
   app = null;
@@ -57,14 +55,6 @@ if (missingVars.length > 0) {
   // Initialize Firebase Authentication and get a reference to the service
   auth = getAuth(app);
 
-  // Configure Google Auth Provider
-  googleProvider = new GoogleAuthProvider();
-  googleProvider.addScope('email');
-  googleProvider.addScope('profile');
-  googleProvider.setCustomParameters({
-    prompt: 'select_account'
-  });
-
   // Initialize Cloud Firestore and get a reference to the service
   db = getFirestore(app);
 
@@ -73,5 +63,5 @@ if (missingVars.length > 0) {
 }
 
 // Exports au niveau top-level
-export { auth, googleProvider, db, analytics };
+export { auth, db, analytics };
 export default app; 
