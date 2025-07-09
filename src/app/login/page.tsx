@@ -1,256 +1,160 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
 
-export default function LoginPage() {
+export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const { login, firebaseConfigured } = useAuth();
+  const { login } = useAuth();
   const router = useRouter();
-
-  // Si Firebase n'est pas configuré, afficher un message d'avertissement
-  if (!firebaseConfigured) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-black flex items-center justify-center px-4">
-        <div className="w-full max-w-md">
-          {/* Logo */}
-          <div className="text-center mb-12">
-            <Link href="/" className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              OptiLearn
-            </Link>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
-              Configuration requise
-            </p>
-          </div>
-
-          {/* Message de configuration */}
-          <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-gray-200/50 dark:border-gray-700/50">
-            <div className="text-center">
-              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 dark:bg-yellow-900/30 mb-4">
-                <svg className="h-6 w-6 text-yellow-600 dark:text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                Configuration Firebase requise
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">
-                Pour utiliser l'authentification, vous devez d'abord configurer Firebase.
-              </p>
-              
-              <div className="text-left bg-gray-50 dark:bg-gray-700 rounded-xl p-4 mb-6">
-                <h4 className="font-medium text-gray-900 dark:text-white mb-2">📝 Étapes à suivre :</h4>
-                <ol className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-                  <li>1. Créez un fichier <code className="bg-gray-200 dark:bg-gray-600 px-1 rounded">.env.local</code> à la racine du projet</li>
-                  <li>2. Ajoutez vos clés Firebase (voir console dans le navigateur)</li>
-                  <li>3. Redémarrez le serveur avec <code className="bg-gray-200 dark:bg-gray-600 px-1 rounded">npm run dev</code></li>
-                </ol>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Link 
-                  href="/"
-                  className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors"
-                >
-                  ← Retour à l'accueil
-                </Link>
-                <button 
-                  onClick={() => window.location.reload()}
-                  className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors"
-                >
-                  🔄 Recharger la page
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError('');
     
     try {
+      setError('');
+      setLoading(true);
       await login(email, password);
       router.push('/dashboard');
     } catch (error) {
-      const authError = error as { message?: string; code?: string };
-      setError(getErrorMessage(authError.code || 'unknown'));
-    } finally {
-      setIsLoading(false);
+      setError('Échec de la connexion. Vérifiez vos identifiants.');
     }
+    
+    setLoading(false);
   };
-
-  const getErrorMessage = (errorCode: string) => {
-    switch (errorCode) {
-      case 'auth/weak-password':
-        return 'Le mot de passe est trop faible. Il doit contenir au moins 8 caractères avec majuscules, minuscules, chiffres et caractères spéciaux.';
-      case 'auth/user-not-found':
-        return 'Aucun compte trouvé avec cette adresse email.';
-      case 'auth/wrong-password':
-        return 'Mot de passe incorrect.';
-      case 'auth/invalid-email':
-        return 'Adresse email invalide.';
-      case 'auth/too-many-requests':
-        return 'Trop de tentatives. Réessayez plus tard.';
-      case 'auth/invalid-credential':
-        return 'Identifiants invalides. Vérifiez votre email et mot de passe.';
-      case 'auth/network-request-failed':
-        return 'Erreur réseau. Vérifiez votre connexion internet.';
-      case 'auth/internal-error':
-        return 'Erreur interne. Vérifiez votre configuration Firebase.';
-      case 'auth/unauthorized-domain':
-        return 'Domaine non autorisé. Contactez le support.';
-      case 'auth/configuration-not-found':
-        return 'Configuration Firebase manquante. Contactez le support.';
-      case 'auth/invalid-api-key':
-        return 'Clé API Firebase invalide. Contactez le support.';
-      case 'auth/app-deleted':
-        return 'Application Firebase supprimée. Contactez le support.';
-      case 'auth/cancelled-popup-request':
-        return 'Connexion annulée. Veuillez réessayer.';
-      case 'auth/operation-not-allowed':
-        return 'Connexion Google non activée. Contactez le support.';
-      default:
-        return `Erreur de connexion (${errorCode}). Vérifiez vos identifiants.`;
-    }
+  
+  const preventDefault = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-black flex items-center justify-center px-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
       <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="text-center mb-12">
-          <Link href="/" className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            OptiLearn
-          </Link>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Connectez-vous à votre compte
-          </p>
+        <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-gray-900">OptiLearn</h1>
         </div>
+        
+        <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-200/50">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-semibold text-gray-800">
+              Se connecter
+            </h2>
+            <p className="mt-2 text-sm text-gray-500">
+              Heureux de vous revoir !
+            </p>
+          </div>
+        
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            {error && (
+              <div className="bg-red-50 border-l-4 border-red-400 text-red-700 p-4 rounded-md text-sm">
+                <p>{error}</p>
+              </div>
+            )}
 
-        {/* Form */}
-        <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-gray-200/50 dark:border-gray-700/50">
-          {error && (
-            <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-2xl">
-              <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
-            </div>
-          )}
-          
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Adresse email
-              </label>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full px-4 py-4 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                placeholder="votre@email.com"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Mot de passe
-              </label>
-              <div className="relative">
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                  Adresse e-mail
+                </label>
                 <input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
                   required
-                  className="w-full px-4 py-4 pr-12 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                  placeholder="••••••••"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 bg-white text-gray-900 placeholder-gray-400 text-base"
+                  placeholder="nom@exemple.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
-                >
-                  {showPassword ? (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
-                      <line x1="1" y1="1" x2="23" y2="23" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></line>
-                    </svg>
-                  ) : (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
-                      <circle cx="12" cy="12" r="3" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></circle>
-                    </svg>
-                  )}
-                </button>
+              </div>
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                  Mot de passe
+                </label>
+                <div className="relative">
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    autoComplete="current-password"
+                    required
+                    className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 bg-white text-gray-900 placeholder-gray-400 text-base"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                      </svg>
+                    ) : (
+                      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between text-sm">
               <div className="flex items-center">
                 <input
                   id="remember-me"
                   name="remember-me"
                   type="checkbox"
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
                 />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                <label htmlFor="remember-me" className="ml-2 text-gray-600">
                   Se souvenir de moi
                 </label>
               </div>
 
-              <div className="text-sm group relative">
-                <a href="#" className="font-medium text-blue-600 hover:text-blue-500 transition-colors border-b border-dashed border-blue-400">
+              <div className="relative group">
+                <a href="#" onClick={preventDefault} className="font-medium text-primary-600 hover:underline">
                   Mot de passe oublié ?
                 </a>
-                <div className="absolute z-10 right-0 transform translate-y-1 w-64 px-4 py-3 bg-red-50 border border-red-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
-                  <div className="flex items-center text-red-600 mb-1">
-                    <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                    </svg>
-                    <span className="font-medium">Fonctionnalité non disponible</span>
+                {/* Tooltip personnalisé amélioré */}
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 px-4 py-3 bg-gray-900 text-white text-sm font-medium rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap z-50 shadow-xl border border-gray-700">
+                  <div className="flex items-center gap-2">
+                    <span className="text-amber-400">🚧</span>
+                    <span>En développement</span>
                   </div>
-                  <p className="text-xs text-red-600">
-                    Cette fonctionnalité n'est pas encore disponible.
-                  </p>
+                  {/* Flèche pointant vers le bas */}
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-transparent border-t-gray-900"></div>
                 </div>
               </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full flex justify-center items-center py-4 px-4 border border-transparent rounded-2xl shadow-sm text-lg font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-            >
-              {isLoading ? (
-                <>
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Connexion...
-                </>
-              ) : (
-                'Se connecter'
-              )}
-            </button>
+            <div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full flex justify-center py-3 px-4 border border-transparent text-sm font-semibold rounded-lg text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-60 transition-all duration-200 shadow-sm hover:shadow-md"
+              >
+                {loading ? 'Connexion...' : 'Se connecter'}
+              </button>
+            </div>
           </form>
-
-          <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-            <p className="text-center text-sm text-gray-600 dark:text-gray-400">
+          
+          <div className="mt-6 text-center text-sm">
+            <p className="text-gray-500">
               Pas encore de compte ?{' '}
-              <Link href="/signup" className="font-medium text-blue-600 hover:text-blue-500 transition-colors">
-                Créer un compte
+              <Link href="/signup" className="font-semibold text-primary-600 hover:underline">
+                Inscrivez-vous
               </Link>
             </p>
           </div>
