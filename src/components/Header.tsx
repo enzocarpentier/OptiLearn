@@ -3,15 +3,15 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRouter, usePathname } from 'next/navigation';
+import { useAuthModal } from '@/contexts/AuthModalContext';
+import { useRouter } from 'next/navigation';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const { currentUser, logout } = useAuth();
+  const { openModal } = useAuthModal();
   const router = useRouter();
-  const pathname = usePathname();
-
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
@@ -28,10 +28,6 @@ export default function Header() {
     } catch (error) {
       console.error('Erreur lors de la déconnexion:', error);
     }
-  };
-
-  const isActivePage = (path: string) => {
-    return pathname === path;
   };
 
   return (
@@ -62,7 +58,7 @@ export default function Header() {
                 <span className={`hidden sm:block text-sm transition-colors duration-300 ${
                   isScrolled ? 'text-gray-600' : 'text-gray-700'
                 }`}>
-                  Bonjour, {currentUser.displayName?.split(' ')[0] || currentUser.email?.split('@')[0]}
+                  Bonjour, {currentUser.user_metadata?.firstName || currentUser.email?.split('@')[0]}
                 </span>
                 <button
                   onClick={handleLogout}
@@ -77,20 +73,20 @@ export default function Header() {
               </div>
             ) : (
               <div className="flex items-center space-x-3">
-                <Link
-                  href="/login"
+                <button
+                  onClick={() => openModal('login')}
                   className={`px-4 py-2 text-sm font-bold transition-colors duration-200 ${
                     isScrolled ? 'text-gray-700 hover:text-gray-900' : 'text-gray-800 hover:text-gray-900'
                   }`}
                 >
                   Se connecter
-                </Link>
-                <Link
-                  href="/signup"
+                </button>
+                <button
+                  onClick={() => openModal('signup')}
                   className="px-4 py-2 text-sm font-bold text-white bg-primary-600 border border-primary-600 rounded-full hover:bg-primary-700 hover:border-primary-700 transition-all duration-200 shadow-sm hover:shadow-md"
                 >
                   S'inscrire
-                </Link>
+                </button>
               </div>
             )}
 
@@ -159,20 +155,24 @@ export default function Header() {
 
             {!currentUser && (
               <div className="pt-2 space-y-2">
-                <Link
-                  href="/login"
-                  className="block px-3 py-2 text-base font-bold text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors duration-200"
-                  onClick={() => setIsMenuOpen(false)}
+                <button
+                  className="block w-full text-left px-3 py-2 text-base font-bold text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors duration-200"
+                  onClick={() => {
+                    openModal('login');
+                    setIsMenuOpen(false);
+                  }}
                 >
                   Se connecter
-                </Link>
-                <Link
-                  href="/signup"
-                  className="block px-3 py-2 text-base font-bold text-white bg-primary-600 hover:bg-primary-700 rounded-md transition-colors duration-200"
-                  onClick={() => setIsMenuOpen(false)}
+                </button>
+                <button
+                  className="block w-full text-left px-3 py-2 text-base font-bold text-white bg-primary-600 hover:bg-primary-700 rounded-md transition-colors duration-200"
+                  onClick={() => {
+                    openModal('signup');
+                    setIsMenuOpen(false);
+                  }}
                 >
                   S'inscrire
-                </Link>
+                </button>
               </div>
             )}
           </div>

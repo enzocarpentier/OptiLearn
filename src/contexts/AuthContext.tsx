@@ -1,15 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import {
-  User,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-  updateProfile
-} from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { auth, isSupabaseConfigured, User } from '@/lib/supabase';
 
 interface AuthContextType {
   currentUser: User | null;
@@ -17,7 +9,7 @@ interface AuthContextType {
   signup: (email: string, password: string, firstName: string, lastName: string) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  firebaseConfigured: boolean;
+  supabaseConfigured: boolean;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -33,46 +25,62 @@ export function useAuth() {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const firebaseConfigured = auth !== null;
+  const supabaseConfigured = isSupabaseConfigured();
 
   async function signup(email: string, password: string, firstName: string, lastName: string) {
-    if (!auth) {
-      throw new Error('Firebase n\'est pas configuré. Veuillez créer un fichier .env.local avec vos clés Firebase.');
+    if (!supabaseConfigured) {
+      throw new Error('Supabase n\'est pas configuré. Veuillez créer un fichier .env.local avec vos clés Supabase.');
     }
-    const { user } = await createUserWithEmailAndPassword(auth, email, password);
-    await updateProfile(user, {
-      displayName: `${firstName} ${lastName}`
-    });
+    
+    try {
+      await auth.signUp(email, password, firstName, lastName);
+    } catch (error) {
+      console.error('Erreur lors de l\'inscription:', error);
+      throw error;
+    }
   }
 
   async function login(email: string, password: string) {
-    if (!auth) {
-      throw new Error('Firebase n\'est pas configuré. Veuillez créer un fichier .env.local avec vos clés Firebase.');
+    if (!supabaseConfigured) {
+      throw new Error('Supabase n\'est pas configuré. Veuillez créer un fichier .env.local avec vos clés Supabase.');
     }
-    await signInWithEmailAndPassword(auth, email, password);
+    
+    try {
+      await auth.signIn(email, password);
+    } catch (error) {
+      console.error('Erreur lors de la connexion:', error);
+      throw error;
+    }
   }
 
   async function logout() {
-    if (!auth) {
-      throw new Error('Firebase n\'est pas configuré. Veuillez créer un fichier .env.local avec vos clés Firebase.');
+    if (!supabaseConfigured) {
+      throw new Error('Supabase n\'est pas configuré. Veuillez créer un fichier .env.local avec vos clés Supabase.');
     }
-    await signOut(auth);
+    
+    try {
+      await auth.signOut();
+    } catch (error) {
+      console.error('Erreur lors de la déconnexion:', error);
+      throw error;
+    }
   }
 
   useEffect(() => {
-    if (!auth) {
-      // Si Firebase n'est pas configuré, on met loading à false pour permettre l'affichage
+    if (!supabaseConfigured) {
+      console.warn('⚠️ Supabase non configuré - fonctionnalités d\'authentification indisponibles');
       setLoading(false);
       return;
     }
 
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    // Écouter les changements d'authentification
+    const { data: { subscription } } = auth.onAuthStateChange((user) => {
       setCurrentUser(user);
       setLoading(false);
     });
 
-    return unsubscribe;
-  }, []);
+    return () => subscription.unsubscribe();
+  }, [supabaseConfigured]);
 
   const value: AuthContextType = {
     currentUser,
@@ -80,7 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signup,
     login,
     logout,
-    firebaseConfigured
+    supabaseConfigured
   };
 
   return (

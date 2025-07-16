@@ -1,10 +1,22 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import DetailedFooter from '@/components/DetailedFooter';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Home() {
+  const { currentUser, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    // Rediriger vers le dashboard si l'utilisateur est connecté
+    if (!loading && currentUser) {
+      router.push('/dashboard');
+    }
+  }, [currentUser, loading, router]);
+
   const scrollToFeatures = () => {
     const featuresSection = document.getElementById('features');
     if (featuresSection) {
@@ -14,6 +26,23 @@ export default function Home() {
       });
     }
   };
+
+  // Afficher un loader pendant la vérification de l'authentification
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Chargement...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Si l'utilisateur est connecté, il sera redirigé par useEffect
+  if (currentUser) {
+    return null;
+  }
   return (
     <>
       {/* Hero Section - Pleine hauteur */}
@@ -36,12 +65,12 @@ export default function Home() {
 
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center pt-8">
               <Link 
-                href="/signup"
+                href={currentUser ? "/dashboard" : "/signup"}
                 className="group relative px-10 py-5 bg-gradient-to-r from-primary-500 via-primary-600 to-secondary-500 text-white rounded-2xl hover:from-primary-600 hover:via-primary-700 hover:to-secondary-600 transition-all duration-300 hover:scale-105 shadow-xl hover:shadow-2xl text-lg font-bold overflow-hidden"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 <span className="relative z-10">
-                  ✨ Commencer gratuitement
+                  ✨ {currentUser ? "Accéder au dashboard" : "Commencer gratuitement"}
                 </span>
               </Link>
               <button 
@@ -73,11 +102,11 @@ export default function Home() {
             {/* Upload de PDF - Rectangle large horizontal */}
             <div className="md:col-span-6 lg:col-span-8 text-center space-y-6 p-8 rounded-2xl bg-white/90 backdrop-blur-md border border-gray-200 shadow-sm hover:shadow-xl transition-all duration-300 relative">
               <div className="absolute top-4 right-4">
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-amber-100 to-amber-200 text-amber-800 border border-amber-200">
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-200">
                   <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  Bientôt disponible
+                  Disponible
                 </span>
               </div>
               <div className="w-20 h-20 bg-gradient-to-r from-primary-500 to-primary-600 rounded-2xl mx-auto flex items-center justify-center">
@@ -86,10 +115,10 @@ export default function Home() {
                 </svg>
               </div>
               <h3 className="text-2xl font-bold text-gray-900">
-                Upload de PDF Intelligent
+                Création de Decks Intelligente
               </h3>
               <p className="text-gray-600 text-lg">
-                Glissez-déposez vos documents PDF et laissez l'IA analyser le contenu pour créer des questions pertinentes et adaptées à votre niveau d'étude.
+                Glissez-déposez vos documents PDF et créer des decks de révision intelligents et adaptés à votre niveau d'étude.
               </p>
             </div>
 
@@ -112,7 +141,7 @@ export default function Home() {
                 IA Intelligente
               </h3>
               <p className="text-gray-600">
-                Notre IA analyse votre contenu et génère automatiquement des questions adaptées à votre niveau d'étude.
+                Notre IA analyse votre contenu et génère des questions adaptées à votre niveau d'étude.
               </p>
             </div>
 
@@ -227,7 +256,7 @@ export default function Home() {
                 Création Assistée par IA
               </h3>
               <p className="text-gray-600">
-                Importez vos cours et laissez l'IA générer automatiquement des questions pertinentes.
+                Importez vos cours et laissez l'IA générer des questions pertinentes.
               </p>
             </div>
 
@@ -293,12 +322,14 @@ export default function Home() {
                 Rejoignez OptiLearn et découvrez une nouvelle façon d'apprendre, plus efficace et plus engageante.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
-                <Link href="/signup" className="px-6 py-3 bg-white text-primary-600 rounded-xl hover:bg-gray-50 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg text-base font-semibold">
-                  S'inscrire gratuitement
+                <Link href={currentUser ? "/dashboard" : "/signup"} className="px-6 py-3 bg-white text-primary-600 rounded-xl hover:bg-gray-50 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg text-base font-semibold">
+                  {currentUser ? "Accéder au dashboard" : "S'inscrire gratuitement"}
                 </Link>
-                <Link href="/login" className="px-6 py-3 bg-white/10 backdrop-blur-sm border border-white/30 text-white rounded-xl hover:bg-white/20 transition-all duration-200 text-base font-medium">
-                  Se connecter
-                </Link>
+                {!currentUser && (
+                  <Link href="/login" className="px-6 py-3 bg-white/10 backdrop-blur-sm border border-white/30 text-white rounded-xl hover:bg-white/20 transition-all duration-200 text-base font-medium">
+                    Se connecter
+                  </Link>
+                )}
               </div>
             </div>
           </div>

@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
-import FeedbackButton from "@/components/FeedbackButton";
+import { AuthModalProvider } from "@/contexts/AuthModalContext";
 import Header from "@/components/Header";
 import { Suspense } from "react";
+import AuthModal from '@/components/AuthModal';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,13 +33,15 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-gray-50`}
       >
         <AuthProvider>
-          <Suspense fallback={<div className="h-16 bg-gray-900 shadow-md"></div>}>
-            <Header />
-          </Suspense>
-          <main className="flex-grow pt-20">
-            {children}
-          </main>
-          <FeedbackButton />
+          <AuthModalProvider>
+            <Suspense fallback={<div className="h-16 bg-gray-900 shadow-md"></div>}>
+              <Header />
+            </Suspense>
+            <main className="flex-grow pt-20">
+              {children}
+            </main>
+            <AuthModal />
+          </AuthModalProvider>
         </AuthProvider>
       </body>
     </html>
