@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { auth, isSupabaseConfigured, User } from '@/lib/supabase';
+import { auth, isSupabaseConfigured, User, supabase } from '@/lib/supabase';
 
 interface AuthContextType {
   currentUser: User | null;
@@ -73,10 +73,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    // Fonction pour initialiser l'authentification de façon plus sûre
+    const initAuth = async () => {
+      try {
+        // Vérifier d'abord si une session existe dans localStorage
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
+          // Une session existe, nous pouvons essayer de récupérer l'utilisateur
+          try {
+            const user = await auth.getUser();
+            setCurrentUser(user as User);
+          } catch (e) {
+            console.warn('Impossible de récupérer les détails utilisateur malgré une session existante:', e);
+            setCurrentUser(null);
+          }
+        } else {
+          // Pas de session active
+          console.info('Aucune session active détectée');
+          setCurrentUser(null);
+        }
+      } catch (error: any) {
+        console.error('Erreur lors de la vérification de session:', error);
+        setCurrentUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    initAuth();
+
     // Écouter les changements d'authentification
     const { data: { subscription } } = auth.onAuthStateChange((user) => {
       setCurrentUser(user);
-      setLoading(false);
     });
 
     return () => subscription.unsubscribe();

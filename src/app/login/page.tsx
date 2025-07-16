@@ -1,19 +1,34 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuthModal } from '@/contexts/AuthModalContext';
 import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
-  const { openModal } = useAuthModal();
   const router = useRouter();
-
+  const [isMounted, setIsMounted] = useState(false);
+  
+  // Utiliser le hook useAuthModal seulement après le montage du composant
   useEffect(() => {
-    // Ouvre la modale de connexion dès que la page est montée
-    openModal('login');
-    // Redirige vers la page d'accueil en arrière-plan
-    router.replace('/');
-  }, [openModal, router]);
+    setIsMounted(true);
+  }, []);
+  
+  useEffect(() => {
+    if (isMounted) {
+      try {
+        // Accéder au contexte uniquement après le montage
+        const { openModal } = useAuthModal();
+        // Ouvre la modale de connexion
+        openModal('login');
+        // Redirige vers la page d'accueil en arrière-plan
+        router.replace('/');
+      } catch (error) {
+        console.error("Erreur lors de l'ouverture de la modale:", error);
+        // Rediriger vers la page d'accueil même en cas d'erreur
+        router.replace('/');
+      }
+    }
+  }, [isMounted, router]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
