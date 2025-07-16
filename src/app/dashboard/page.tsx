@@ -552,7 +552,7 @@ export default function DashboardPage() {
       case 'Paramètres':
         return <PlaceholderView title="Paramètres" />;
       default:
-        return <DashboardHomeView />;
+        return <DashboardHomeView onOpenCreateDeckModal={() => setIsCreateDeckModalOpen(true)} />;
     }
   };
 
