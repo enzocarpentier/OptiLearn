@@ -50,9 +50,11 @@ export default function DeckDetailView({ deck, onBack }: DeckDetailViewProps) {
     try {
       if (file.type !== 'application/pdf') throw new Error('Seuls les fichiers PDF sont acceptés');
       if (file.size > 10 * 1024 * 1024) throw new Error('Le fichier est trop volumineux (max 10 MB)');
-      const filePath = await supabaseDecks.uploadPDF(deck.id, file, currentUser.id);
-      const signedUrl = await supabaseDecks.getSignedPDFUrl(filePath);
-      setPdfUrl(signedUrl);
+      const updatedDeck = await supabaseDecks.uploadPDF(deck.id, file, currentUser.id);
+      if (updatedDeck.pdf_file_path) {
+        const signedUrl = await supabaseDecks.getSignedPDFUrl(updatedDeck.pdf_file_path);
+        setPdfUrl(signedUrl);
+      }
       window.location.reload(); // Recharger pour voir les changements
     } catch (err) {
       console.error(`Erreur lors de l'upload du PDF:`, err);
