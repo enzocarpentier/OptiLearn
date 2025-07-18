@@ -2,12 +2,9 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { auth, isSupabaseConfigured, User, supabase } from '@/lib/supabase';
-import type { User as SupabaseUser } from '@supabase/supabase-js';
 
-// Type guard pour vérifier la compatibilité de l'utilisateur
-function isLocalUser(user: SupabaseUser): user is User {
-  return user && typeof user.id === 'string';
-}
+
+
 
 interface AuthContextType {
   currentUser: User | null;
