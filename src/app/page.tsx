@@ -131,7 +131,7 @@ export default function Home() {
                   <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  Bientôt
+                  Bientôt disponible
                 </span>
               </div>
               <div className="w-16 h-16 bg-gradient-to-r from-secondary-500 to-secondary-600 rounded-2xl mx-auto flex items-center justify-center">
@@ -154,7 +154,7 @@ export default function Home() {
                   <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  Bientôt
+                  Bientôt disponible
                 </span>
               </div>
               <div className="w-14 h-14 bg-gradient-to-r from-green-500 to-green-600 rounded-2xl mx-auto flex items-center justify-center">
@@ -177,7 +177,7 @@ export default function Home() {
                   <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  Bientôt
+                  Bientôt disponible
                 </span>
               </div>
               <div className="w-14 h-14 bg-gradient-to-r from-red-500 to-red-600 rounded-2xl mx-auto flex items-center justify-center">
@@ -200,7 +200,7 @@ export default function Home() {
                   <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  Bientôt
+                  Bientôt disponible
                 </span>
               </div>
               <div className="w-14 h-14 bg-gradient-to-r from-pink-500 to-pink-600 rounded-2xl mx-auto flex items-center justify-center">
@@ -246,7 +246,7 @@ export default function Home() {
                   <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  Bientôt
+                  Bientôt disponible
                 </span>
               </div>
               <div className="w-16 h-16 bg-gradient-to-r from-rose-500 to-rose-600 rounded-2xl mx-auto flex items-center justify-center">
