@@ -21,6 +21,9 @@ export default function DeckDetailView({ deck, onBack }: DeckDetailViewProps) {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [loadingPdf, setLoadingPdf] = useState(false);
   const [pdfError, setPdfError] = useState<string | null>(null);
+  
+  // --- AI Assistant State ---
+  const [activeTab, setActiveTab] = useState<'assistant' | 'quiz' | 'resume' | 'flashcard'>('assistant');
 
   useEffect(() => {
     const loadPDF = async () => {
@@ -70,7 +73,14 @@ export default function DeckDetailView({ deck, onBack }: DeckDetailViewProps) {
     name: deck.name,
     fileName: deck.pdf_file_name || deck.name,
   };
-  const aiAssistant = <AIAssistant deck={deckForAI} />;
+  const aiAssistant = (
+    <AIAssistant 
+      deck={deckForAI} 
+      pdfUrl={pdfUrl}
+      activeTab={activeTab}
+      onTabSelect={setActiveTab}
+    />
+  );
 
   // --- Main Content (PDF Viewer) --- 
   let mainContent;
