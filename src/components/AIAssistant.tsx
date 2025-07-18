@@ -144,7 +144,11 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ deck, pdfUrl, activeTab, onTa
         } catch (e) {
           console.error(e);
           setError('Impossible de lire le document PDF.');
+          setPdfContext(null);
         }
+      } else {
+        // Si aucun PDF pour ce deck, on réinitialise le contexte
+        setPdfContext(null);
       }
     };
     loadPdfContext();
