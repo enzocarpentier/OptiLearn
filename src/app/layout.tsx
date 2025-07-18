@@ -6,6 +6,8 @@ import { AuthModalProvider } from "@/contexts/AuthModalContext";
 import Header from "@/components/Header";
 import { Suspense } from "react";
 import AuthModal from '@/components/AuthModal';
+import { ThemeProvider } from '@/components/ThemeProvider';
+import { Toaster } from 'sonner';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,19 +30,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr">
+    <html lang="fr" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-gray-50`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-gray-50 dark:bg-slate-900`}
       >
         <AuthProvider>
           <AuthModalProvider>
-            <Suspense fallback={<div className="h-16 bg-gray-900 shadow-md"></div>}>
-              <Header />
-            </Suspense>
-            <main className="flex-grow pt-20">
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
               {children}
-            </main>
-            <AuthModal />
+              <AuthModal />
+            </ThemeProvider>
+            <Toaster richColors position="bottom-right" />
           </AuthModalProvider>
         </AuthProvider>
       </body>

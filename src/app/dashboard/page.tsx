@@ -1,668 +1,517 @@
 'use client';
 
-import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
-import ProtectedRoute from '@/components/ProtectedRoute';
 import { useState, useEffect } from 'react';
-import CreateDeckModal from '@/components/CreateDeckModal';
+import { useAuth } from '@/contexts/AuthContext';
+
+// Redirige vers la page publique si l'utilisateur n'est pas authentifié
+type RedirectPath = '/decouverte';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import NewCreateDeckModal from '@/components/NewCreateDeckModal';
+import Sidebar from '@/components/Sidebar';
 import DecksView from '@/components/DecksView';
-import DeckDetailView from '@/components/DeckDetailView';
-import { decks } from '@/lib/supabase';
+import dynamic from 'next/dynamic';
 
-// --- View Components ---
+const PdfViewer = dynamic(() => import('@/components/PdfViewer'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full flex items-center justify-center">
+      <p className="text-slate-500 dark:text-slate-400">Chargement du lecteur PDF...</p>
+    </div>
+  ),
+});
+import { BarLoader } from 'react-spinners';
+import { supabase } from '@/lib/supabase';
+import { ProfileSettingsView } from './ProfileSettingsView';
+import { PasswordSettingsView } from './PasswordSettingsView';
+import { AppearanceSettingsView } from './AppearanceSettingsView';
+import { DangerZoneView } from './DangerZoneView';
+import { Deck, decks } from '@/lib/supabase';
+import AIAssistant from '@/components/AIAssistant';
+import ComingSoonPanel from '@/components/ComingSoonPanel';
+import { DeckTabId } from '@/components/DeckTabs';
 
-const DashboardHomeView = ({ onOpenCreateDeckModal }: { onOpenCreateDeckModal: () => void }) => {
-  const { currentUser } = useAuth();
-  const [deckCount, setDeckCount] = useState(0);
+/* -------------------------------------------------------------------------- */
+/*                              Redirection protection                        */
+/* -------------------------------------------------------------------------- */
 
-  useEffect(() => {
-    const fetchDeckCount = async () => {
-      if (currentUser) {
-        try {
-          const userDecks = await decks.getDecks(currentUser.id);
-          setDeckCount(userDecks.length);
-        } catch (error) {
-          console.error('Erreur lors de la récupération des decks:', error);
-        }
-      }
-    };
 
-    fetchDeckCount();
-  }, [currentUser]);
+
+const DashboardHomeView = ({ onOpenCreateDeckModal, deckCount }: { onOpenCreateDeckModal: () => void; deckCount: number }) => {
+
 
   return (
-  <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-    {/* Header avec effet de verre */}
-    <div className="sticky top-0 z-40 backdrop-blur-xl bg-white/80 border-b border-white/20 shadow-lg">
-      <div className="max-w-7xl mx-auto px-8 py-6">
-        <div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent">
-            Tableau de bord
-          </h1>
-          <p className="text-slate-600 mt-2">
-            Gérez vos sessions d'apprentissage et suivez vos progrès grâce à l'intelligence artificielle.
-          </p>
-        </div>
+    <div className="w-full h-full p-8">
+      {/* Header */}
+      <div className="flex flex-col mb-8">
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+          Tableau de bord
+        </h1>
+        <p className="text-slate-600 dark:text-slate-400 text-sm">Bienvenue ! Gérez vos decks et suivez vos progrès</p>
       </div>
-    </div>
-
-    <div className="max-w-7xl mx-auto px-8 py-8">
-
-      {/* Stats Cards */}
+      {/* Stats cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-white/20 hover:shadow-xl transition-all duration-300 hover:scale-105">
-        <div className="flex items-center">
-                      <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-semibold text-slate-600">Decks créés</p>
-              <p className="text-2xl font-bold text-slate-900">{deckCount}</p>
-            </div>
-        </div>
+        {/* Deck count */}
+        <StatCard iconColor="blue" title="Decks créés" value={deckCount.toString()} svgPath="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        {/* Quiz completed */}
+        <StatCard iconColor="green" title="Quiz créés" value="0" svgPath="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        {/* Study time */}
+        <StatCard iconColor="orange" title="Temps d'étude" value="0h" svgPath="M13 10V3L4 14h7v7l9-11h-7z" />
+        {/* Avg score */}
+        <StatCard iconColor="indigo" title="Score moyen" value="-%" svgPath="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
       </div>
 
-        <div className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-white/20 hover:shadow-xl transition-all duration-300 hover:scale-105">
-          <div className="flex items-center">
-            <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-semibold text-slate-600">Quiz Complétés</p>
-              <p className="text-2xl font-bold text-slate-900">0</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-white/20 hover:shadow-xl transition-all duration-300 hover:scale-105">
-          <div className="flex items-center">
-            <div className="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-semibold text-slate-600">Temps d'étude</p>
-              <p className="text-2xl font-bold text-slate-900">0h</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-white/20 hover:shadow-xl transition-all duration-300 hover:scale-105">
-          <div className="flex items-center">
-            <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-semibold text-slate-600">Score Moyen</p>
-              <p className="text-2xl font-bold text-slate-900">-%</p>
-            </div>
-          </div>
-        </div>
-    </div>
-
-      {/* Quick Actions */}
+      {/* Action shortcuts */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        {/* Upload de PDF */}
-        <div className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-white/20 hover:shadow-xl transition-all duration-300 hover:scale-105">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-              </svg>
-            </div>
-          </div>
-          <h3 className="text-lg font-bold text-slate-900 mb-2">
-            Créer un Deck
-          </h3>
-          <p className="text-slate-600 text-sm mb-4">
-            Téléchargez un document pour créer un nouveau deck de révision.
-          </p>
-          <button 
-            onClick={onOpenCreateDeckModal}
-            className="w-full px-4 py-2 bg-indigo-500 text-white rounded-xl font-semibold hover:bg-indigo-600 transition-all duration-300 shadow-sm hover:shadow-md"
-          >
-            Créer un nouveau deck
-          </button>
-        </div>
-
-        {/* Quiz Rapide */}
-        <div className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-white/20 hover:shadow-xl transition-all duration-300 hover:scale-105">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-amber-100 to-orange-100 text-amber-800 border border-amber-200">
-              Bientôt disponible
-            </span>
-          </div>
-          <h3 className="text-lg font-bold text-slate-900 mb-2">
-            Quiz Rapide
-          </h3>
-          <p className="text-slate-600 text-sm mb-4">
-            Démarrez un quiz rapide pour réviser vos derniers cours.
-          </p>
-          <button 
-            disabled
-            className="w-full px-4 py-2 bg-slate-100 text-slate-400 rounded-xl font-semibold cursor-not-allowed"
-          >
-            Commencer un quiz
-          </button>
-        </div>
-
-        {/* Révision Intelligente */}
-        <div className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-white/20 hover:shadow-xl transition-all duration-300 hover:scale-105">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-              </svg>
-            </div>
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-amber-100 to-orange-100 text-amber-800 border border-amber-200">
-              Bientôt disponible
-            </span>
-          </div>
-          <h3 className="text-lg font-bold text-slate-900 mb-2">
-            IA Adaptative
-          </h3>
-          <p className="text-slate-600 text-sm mb-4">
-            L'IA s'adapte à votre niveau et identifie vos lacunes.
-          </p>
-          <button 
-            disabled
-            className="w-full px-4 py-2 bg-slate-100 text-slate-400 rounded-xl font-semibold cursor-not-allowed"
-          >
-            Révision personnalisée
-          </button>
-        </div>
+        <ShortcutCard
+          color="blue"
+          title="Créer un deck"
+          subtitle="Organisez vos cartes d'apprentissage"
+          onClick={onOpenCreateDeckModal}
+        />
+        <ShortcutCard
+          color="green"
+          title="Commencer un quiz"
+          subtitle="Testez vos connaissances"
+          disabled
+        />
+        <ShortcutCard
+          color="indigo"
+          title="Voir les statistiques"
+          subtitle="Analysez vos performances"
+          disabled
+        />
       </div>
 
-      {/* Recent Activity - Empty State */}
-      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-8">
+      {/* Recent Activity Section */}
+      <div className="relative p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900/30 dark:to-slate-800/40 overflow-hidden border border-slate-200/80 dark:border-slate-800/30 shadow-md opacity-60">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-slate-900">Activité Récente</h2>
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-amber-100 to-orange-100 text-amber-800 border border-amber-200">
+          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">Activité récente</h2>
+          <div className="bg-amber-100 text-amber-800 text-xs font-semibold px-2.5 py-1 rounded-full dark:bg-amber-900/50 dark:text-amber-300">
             Bientôt disponible
-          </span>
+          </div>
         </div>
         <div className="text-center py-12">
-          <div className="relative mx-auto w-20 h-20 mb-6">
-            <div className="absolute inset-0 bg-gradient-to-r from-slate-400 to-slate-500 rounded-full opacity-20"></div>
-            <div className="absolute inset-2 bg-gradient-to-r from-slate-500 to-slate-600 rounded-full flex items-center justify-center shadow-lg">
-              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-            </div>
+          <div className="w-20 h-20 bg-gradient-to-br from-slate-400 to-slate-500 rounded-xl flex items-center justify-center mb-6 mx-auto shadow-md">
+            <svg className="w-9 h-9 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
           </div>
-          <h3 className="text-xl font-bold text-slate-900 mb-3">Fonctionnalité en développement</h3>
-          <p className="text-slate-600">Le suivi d'activité sera bientôt disponible dans une prochaine mise à jour.</p>
+          <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-2">Aucune activité récente</h3>
+          <p className="text-slate-500 dark:text-slate-400">Vos dernières actions apparaîtront ici.</p>
         </div>
       </div>
     </div>
-  </div>
   );
 };
 
-const PlaceholderView = ({ title }: { title: string }) => {
-  const getIcon = (title: string) => {
-    switch (title) {
-      case 'Quiz':
-        return (
-          <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        );
-      case 'Statistiques':
-        return (
-          <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-          </svg>
-        );
-      case 'Paramètres':
-        return (
-          <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-        );
-      default:
-        return (
-          <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m0 0V9a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-          </svg>
-        );
-    }
-  };
+/* ------------------------------- Quiz/Stats ------------------------------- */
+const PlaceholderView = ({ title }: { title: string }) => (
+  <div className="w-full h-full flex flex-col items-center justify-center bg-white dark:bg-slate-950 p-8">
+        <h1 className="text-3xl font-bold mb-2 text-slate-900 dark:text-slate-100">
+      {title}
+    </h1>
+    <p className="text-slate-600 dark:text-slate-400">Cette fonctionnalité sera disponible prochainement.</p>
+  </div>
+);
+const QuizView = () => <PlaceholderView title="Quiz" />;
+const StatsView = () => <PlaceholderView title="Statistiques" />;
 
-  const getGradient = (title: string) => {
-    switch (title) {
-      case 'Quiz':
-        return 'from-green-500 to-emerald-600';
-      case 'Statistiques':
-        return 'from-purple-500 to-indigo-600';
-      case 'Paramètres':
-        return 'from-gray-500 to-slate-600';
-      default:
-        return 'from-blue-500 to-indigo-600';
-    }
-  };
+/* ----------------------------- DeckDetailView --------------------------- */
+const DeckDetailView = ({ deck, onBack, onDeckDeleted, onDeckUpdated, pdfUrl }: { deck: Deck; onBack: () => void; onDeckDeleted: (deckId: string) => void; onDeckUpdated: (deck: Deck) => void; pdfUrl: string | null; }) => {
+  const isFeatureDisabled = false; // AI Assistant re-enabled
 
-  const getDescription = (title: string) => {
-    switch (title) {
-      case 'Quiz':
-        return 'Bientôt disponible : testez vos connaissances avec des quiz interactifs et personnalisés.';
-      case 'Statistiques':
-        return 'Bientôt disponible : suivez vos progrès et analysez vos performances d\'apprentissage.';
-      case 'Paramètres':
-        return 'Bientôt disponible : personnalisez votre expérience et gérez vos préférences.';
+  // Menu interne du deck (Assistant IA, Quiz, Résumé, Flashcard)
+  const [activeMenu, setActiveMenu] = useState<DeckTabId>('assistant');
+
+  // Rendu conditionnel du panneau latéral selon le menu sélectionné
+  const renderRightPanel = () => {
+    switch (activeMenu) {
+      case 'assistant':
+        return isFeatureDisabled ? (
+          <div className="absolute inset-0 bg-slate-100/50 dark:bg-slate-800/50 backdrop-blur-sm flex items-center justify-center rounded-b-xl z-10">
+            <div className="bg-amber-100 text-amber-800 text-sm font-semibold px-4 py-2 rounded-full dark:bg-amber-900/50 dark:text-amber-300">
+              Bientôt disponible
+            </div>
+          </div>
+        ) : (
+          <AIAssistant deck={deck} pdfUrl={pdfUrl} activeTab={activeMenu} onTabSelect={(id) => setActiveMenu(id)} />
+        );
+      case 'quiz':
+        return <ComingSoonPanel label="Quiz" activeTab={activeMenu} onTabSelect={(id) => setActiveMenu(id)} />;
+      case 'resume':
+        return <ComingSoonPanel label="Résumé" activeTab={activeMenu} onTabSelect={(id) => setActiveMenu(id)} />;
+      case 'flashcard':
+        return <ComingSoonPanel label="Flashcard" activeTab={activeMenu} onTabSelect={(id) => setActiveMenu(id)} />;
       default:
-        return 'Cette fonctionnalité sera bientôt disponible.';
+        return null;
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      {/* Header avec effet de verre */}
-      <div className="sticky top-0 z-40 backdrop-blur-xl bg-white/80 border-b border-white/20 shadow-lg">
-        <div className="max-w-7xl mx-auto px-8 py-6">
-          <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent">
-              {title}
-            </h1>
-            <p className="text-slate-600 mt-2">
-              {getDescription(title)}
-            </p>
-          </div>
+    <div className="w-full h-full flex flex-col bg-white dark:bg-slate-950">
+      {/* Header section */}
+      <div className="flex-shrink-0 flex items-center gap-4 p-3 border-b border-slate-200 dark:border-slate-800">
+        {/* Back button */}
+        <button onClick={onBack} className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          <span className="hidden sm:inline">Retour</span>
+        </button>
+
+        {/* Deck Title */}
+        <div className="flex flex-col">
+          <h1 className="text-base font-bold text-slate-900 dark:text-slate-100 truncate">{deck.name}</h1>
+          {deck.pdf_file_name && (
+            <p className="text-slate-500 dark:text-slate-400 text-xs truncate">{deck.pdf_file_name}</p>
+          )}
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-8 py-20">
-        <div className="text-center">
-          {/* Icône animée */}
-          <div className="relative mx-auto w-32 h-32 mb-8">
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-full opacity-20 animate-pulse"></div>
-            <div className={`absolute inset-4 bg-gradient-to-r ${getGradient(title)} rounded-full flex items-center justify-center shadow-lg`}>
-              {getIcon(title)}
-            </div>
-          </div>
+      {/* Content section */}
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-5 gap-4 min-h-0 p-4">
+        {/* PDF Viewer */}
+        <div className="lg:col-span-3 bg-slate-100 dark:bg-slate-800/50 rounded-xl flex items-center justify-center border border-slate-200 dark:border-slate-800 overflow-hidden">
+          {pdfUrl ? (
+            <PdfViewer fileUrl={pdfUrl} />
+          ) : (
+            <p className="text-slate-500 dark:text-slate-400">Ce deck n'a pas de PDF associé.</p>
+          )}
+        </div>
 
-          {/* Contenu principal */}
-          <div className="max-w-2xl mx-auto">
-            <h2 className="text-3xl font-bold text-slate-900 mb-4">
-              Cette page est en construction
-            </h2>
-            <p className="text-xl text-slate-600 mb-8 leading-relaxed">
-              {getDescription(title)}
-            </p>
-
-            {/* Badge "Bientôt disponible" */}
-            <div className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-100 to-orange-100 text-amber-800 rounded-full font-semibold border border-amber-200 shadow-sm">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Bientôt disponible
-            </div>
-
-            {/* Fonctionnalités à venir */}
-            <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-              {title === 'Quiz' && (
-                <>
-                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/20">
-                    <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mb-4 mx-auto">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                      </svg>
-                    </div>
-                    <h3 className="font-semibold text-slate-900 mb-2">Quiz Rapides</h3>
-                    <p className="text-sm text-slate-600">Sessions de révision de 5-15 minutes</p>
-                  </div>
-                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/20">
-                    <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-4 mx-auto">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                      </svg>
-                    </div>
-                    <h3 className="font-semibold text-slate-900 mb-2">IA Adaptative</h3>
-                    <p className="text-sm text-slate-600">Questions personnalisées selon votre niveau</p>
-                  </div>
-                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/20">
-                    <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mb-4 mx-auto">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                      </svg>
-                    </div>
-                    <h3 className="font-semibold text-slate-900 mb-2">Mode Multijoueur</h3>
-                    <p className="text-sm text-slate-600">Défiez vos amis et classements</p>
-                  </div>
-                </>
-              )}
-              
-              {title === 'Statistiques' && (
-                <>
-                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/20">
-                    <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center mb-4 mx-auto">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                      </svg>
-                    </div>
-                    <h3 className="font-semibold text-slate-900 mb-2">Analyses Détaillées</h3>
-                    <p className="text-sm text-slate-600">Graphiques de progression et performances</p>
-                  </div>
-                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/20">
-                    <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mb-4 mx-auto">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <h3 className="font-semibold text-slate-900 mb-2">Temps d'Étude</h3>
-                    <p className="text-sm text-slate-600">Suivi du temps passé par matière</p>
-                  </div>
-                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/20">
-                    <div className="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-xl flex items-center justify-center mb-4 mx-auto">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                      </svg>
-                    </div>
-                    <h3 className="font-semibold text-slate-900 mb-2">Points Forts/Faibles</h3>
-                    <p className="text-sm text-slate-600">Identification des domaines à améliorer</p>
-                  </div>
-                </>
-              )}
-              
-              {title === 'Paramètres' && (
-                <>
-                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/20">
-                    <div className="w-12 h-12 bg-gradient-to-r from-gray-500 to-slate-600 rounded-xl flex items-center justify-center mb-4 mx-auto">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                      </svg>
-                    </div>
-                    <h3 className="font-semibold text-slate-900 mb-2">Profil Utilisateur</h3>
-                    <p className="text-sm text-slate-600">Gestion de vos informations personnelles</p>
-                  </div>
-                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/20">
-                    <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-4 mx-auto">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5-5-5h5v-12a1 1 0 011-1h2a1 1 0 011 1v12z" />
-                      </svg>
-                    </div>
-                    <h3 className="font-semibold text-slate-900 mb-2">Préférences</h3>
-                    <p className="text-sm text-slate-600">Notifications, thème et langue</p>
-                  </div>
-                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/20">
-                    <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-red-600 rounded-xl flex items-center justify-center mb-4 mx-auto">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                      </svg>
-                    </div>
-                    <h3 className="font-semibold text-slate-900 mb-2">Sécurité</h3>
-                    <p className="text-sm text-slate-600">Mot de passe et authentification</p>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
+        {/* Panneau latéral en fonction du menu sélectionné */}
+        <div className="lg:col-span-2 flex flex-col min-h-0">
+          {renderRightPanel()}
         </div>
       </div>
     </div>
   );
 };
 
-export default function DashboardPage() {
-  const { logout } = useAuth();
-  const router = useRouter();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isDeckDetailViewOpen, setIsDeckDetailViewOpen] = useState(false);
-  const [isCreateDeckModalOpen, setIsCreateDeckModalOpen] = useState(false);
-  const [activeView, setActiveView] = useState('Tableau de bord');
-  const [selectedDeck, setSelectedDeck] = useState<any | null>(null);
+/* ------------------------------ Settings view ----------------------------- */
+const SettingsView = () => {
+  const { currentUser, logout } = useAuth();
+  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'appearance' | 'danger'>('profile');
 
-  // Hide the global header for dashboard
-  useEffect(() => {
-    const header = document.querySelector('header') as HTMLElement;
-    const main = document.querySelector('body > div > main') as HTMLElement;
-    if (header) header.style.display = 'none';
-    if (main) {
-      main.style.paddingTop = '0';
-      main.style.height = '100vh';
-      main.style.overflow = 'hidden';
-    }
+  const tabs = [
+    { id: 'profile', name: 'Profil', icon: '👤' },
+    { id: 'security', name: 'Sécurité', icon: '🔒' },
+    { id: 'appearance', name: 'Apparence', icon: '🎨' },
+    { id: 'danger', name: 'Danger', icon: '⚠️' },
+  ] as const;
 
-    // Écouteur d'événement pour la navigation vers Mes Decks avec ouverture de la modale
-    const handleNavigateToDecks = (event: CustomEvent) => {
-      setActiveView('Mes Decks');
-      if (event.detail?.openCreateModal) {
-        setTimeout(() => setIsCreateDeckModalOpen(true), 100); // Petit délai pour s'assurer que la vue est chargée
-      }
-    };
-
-    window.addEventListener('navigateToDecks', handleNavigateToDecks as EventListener);
-
-    return () => {
-      if (header) header.style.display = '';
-      if (main) {
-        main.style.paddingTop = '';
-        main.style.height = '';
-        main.style.overflow = '';
-      }
-      window.removeEventListener('navigateToDecks', handleNavigateToDecks as EventListener);
-    };
-  }, []);
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-      // Forcer la redirection vers la page d'accueil
-      window.location.href = '/';
-    } catch (error) {
-      console.error('Erreur lors de la déconnexion:', error);
-    }
-  };
-
-  const navigateToView = (viewName: string) => {
-    setActiveView(viewName);
-    // Ne pas utiliser setCurrentDeck qui n'est pas défini
-  };
-
-  const handleSelectDeck = (deck: any) => {
-    setSelectedDeck(deck);
-    setIsDeckDetailViewOpen(true);
-    setActiveView('DeckDetail'); // Changer la vue active pour afficher le détail du deck
-  };
-
-  const handleCloseDeckDetail = () => {
-    setIsDeckDetailViewOpen(false);
-    setSelectedDeck(null);
-  };
-
-  const sidebarItems = [
-    {
-      name: 'Tableau de bord',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5a2 2 0 012-2h4a2 2 0 012 2v4M8 12a2 2 0 012-2h4a2 2 0 012 2v4" />
-        </svg>
-      ),
-    },
-    {
-      name: 'Mes Decks',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-        </svg>
-      ),
-    },
-    {
-      name: 'Quiz',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      ),
-    },
-    {
-      name: 'Statistiques',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-        </svg>
-      ),
-    },
-    {
-      name: 'Paramètres',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
-      ),
-    }
-  ];
-
-  // Fonction pour naviguer vers Mes Decks et ouvrir la modale de création
-  const navigateToDecksAndCreate = () => {
-    setActiveView('Mes Decks');
-    // Utiliser un événement personnalisé pour ouvrir la modale dans DecksView
-    setTimeout(() => {
-      window.dispatchEvent(new CustomEvent('openCreateDeckModal'));
-    }, 100);
-  };
-
-  const renderContent = () => {
-    switch (activeView) {
-      case 'Tableau de bord':
-        return <DashboardHomeView onOpenCreateDeckModal={navigateToDecksAndCreate} />;
-      case 'Mes Decks':
-        return <DecksView onDeckClick={handleSelectDeck} />;
-      case 'DeckDetail':
-        return selectedDeck ? <DeckDetailView deck={selectedDeck} onBack={() => navigateToView('Mes Decks')} /> : <DashboardHomeView onOpenCreateDeckModal={() => setIsCreateDeckModalOpen(true)} />;
-      case 'Quiz':
-        return <PlaceholderView title="Quiz" />;
-      case 'Statistiques':
-        return <PlaceholderView title="Statistiques" />;
-      case 'Paramètres':
-        return <PlaceholderView title="Paramètres" />;
+  const renderTab = () => {
+    switch (activeTab) {
+      case 'profile':
+        return <ProfileSettingsView user={currentUser} logout={logout} />;
+      case 'security':
+        return <PasswordSettingsView />;
+      case 'appearance':
+        return <AppearanceSettingsView />;
+      case 'danger':
+        return <DangerZoneView />;
       default:
-        return <DashboardHomeView onOpenCreateDeckModal={() => setIsCreateDeckModalOpen(true)} />;
+        return null;
+    }
+  };
+
+  return (
+    <div className="w-full h-full p-8">
+      <div className="flex flex-col w-fit max-w-full mb-8">
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+          Paramètres
+        </h1>
+        <p className="text-slate-600 dark:text-slate-400 text-sm">Gérez vos informations et personnalisez votre expérience.</p>
+      </div>
+      
+      {/* Horizontal Tabs nav */}
+      <nav className="flex flex-row gap-1 w-max mx-auto bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-2 mb-6">
+        {tabs.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setActiveTab(t.id)}
+            className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
+              activeTab === t.id
+                ? 'bg-primary-100 dark:bg-primary-900/40 text-primary-600 dark:text-primary-300'
+                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50'
+            }`}
+          >
+            <span className="mr-2 text-lg">{t.icon}</span>
+            {t.name}
+          </button>
+        ))}
+      </nav>
+
+      {/* Tab content */}
+      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-8">
+        {renderTab()}
+      </div>
+    </div>
+  );
+};
+
+/* ----------------------------- Helper components --------------------------- */
+interface StatCardProps {
+  title: string;
+  value: string;
+  iconColor: 'blue' | 'green' | 'orange' | 'indigo';
+  svgPath: string;
+}
+const StatCard = ({ title, value, iconColor, svgPath }: StatCardProps) => {
+  const colorClasses = {
+    blue: {
+      bg: 'from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/40',
+      iconBg: 'bg-gradient-to-br from-blue-500 to-blue-600',
+      iconText: 'text-white',
+    },
+    green: {
+      bg: 'from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/40',
+      iconBg: 'bg-gradient-to-br from-green-500 to-green-600',
+      iconText: 'text-white',
+    },
+    orange: {
+      bg: 'from-orange-50 to-orange-100 dark:from-orange-900/30 dark:to-orange-800/40',
+      iconBg: 'bg-gradient-to-br from-orange-500 to-orange-600',
+      iconText: 'text-white',
+    },
+    indigo: {
+      bg: 'from-indigo-50 to-indigo-100 dark:from-indigo-900/30 dark:to-indigo-800/40',
+      iconBg: 'bg-gradient-to-br from-indigo-500 to-indigo-600',
+      iconText: 'text-white',
+    },
+  };
+
+  const classes = colorClasses[iconColor];
+
+  return (
+    <div
+      className={`relative p-6 rounded-2xl bg-gradient-to-br ${classes.bg} overflow-hidden border border-slate-200/80 dark:border-slate-800/30 shadow-md`}
+    >
+      <div className={`w-14 h-14 ${classes.iconBg} rounded-xl flex items-center justify-center mb-4 shadow-md`}>
+        <svg className={`w-7 h-7 ${classes.iconText}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+          <path strokeLinecap="round" strokeLinejoin="round" d={svgPath} />
+        </svg>
+      </div>
+      <p className="text-3xl font-bold text-slate-800 dark:text-slate-100">{value}</p>
+      <p className="text-slate-600 dark:text-slate-400 text-sm font-medium">{title}</p>
+    </div>
+  );
+};
+interface ShortcutCardProps {
+  title: string;
+  subtitle: string;
+  color: 'blue' | 'green' | 'indigo';
+  onClick?: () => void;
+  disabled?: boolean;
+}
+const ShortcutCard = ({ title, subtitle, color, onClick, disabled }: ShortcutCardProps) => {
+  const colorClasses = {
+    blue: {
+      bg: 'from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/40',
+      iconBg: 'bg-gradient-to-br from-blue-500 to-blue-600',
+      iconText: 'text-white',
+      glow: 'hover:shadow-blue-500/20',
+    },
+    green: {
+      bg: 'from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/40',
+      iconBg: 'bg-gradient-to-br from-green-500 to-green-600',
+      iconText: 'text-white',
+      glow: 'hover:shadow-green-500/20',
+    },
+    indigo: {
+      bg: 'from-indigo-50 to-indigo-100 dark:from-indigo-900/30 dark:to-indigo-800/40',
+      iconBg: 'bg-gradient-to-br from-indigo-500 to-indigo-600',
+      iconText: 'text-white',
+      glow: 'hover:shadow-indigo-500/20',
+    },
+  };
+
+  const classes = colorClasses[color];
+
+  if (disabled) {
+    return (
+      <div
+        aria-disabled={true}
+        className={`group relative text-left p-6 rounded-2xl bg-gradient-to-br ${classes.bg} overflow-hidden opacity-60 cursor-not-allowed`}
+      >
+        <div className="absolute top-3 right-3 bg-amber-100 text-amber-800 text-xs font-semibold px-2.5 py-1 rounded-full dark:bg-amber-900/50 dark:text-amber-300">
+          Bientôt disponible
+        </div>
+        <div className={`w-14 h-14 ${classes.iconBg} rounded-xl flex items-center justify-center mb-5 shadow-md`}>
+          <svg className={`w-7 h-7 ${classes.iconText}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+        </div>
+        <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-1">{title}</h3>
+        <p className="text-slate-600 dark:text-slate-400 text-sm font-medium">{subtitle}</p>
+      </div>
+    );
+  }
+
+  return (
+    <button
+      onClick={onClick}
+      className={`group relative text-left p-6 rounded-2xl bg-gradient-to-br ${classes.bg} overflow-hidden transition-all duration-300 ease-out transform hover:-translate-y-1 border border-slate-200/80 dark:border-slate-800/30 shadow-md hover:shadow-xl ${classes.glow}`}
+    >
+      <div className={`w-14 h-14 ${classes.iconBg} rounded-xl flex items-center justify-center mb-5 shadow-md`}>
+        <svg className={`w-7 h-7 ${classes.iconText}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+      </div>
+      <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-1">{title}</h3>
+      <p className="text-slate-600 dark:text-slate-400 text-sm font-medium">{subtitle}</p>
+      
+      <div className="absolute bottom-6 right-6 text-slate-400 dark:text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform -translate-x-2 group-hover:translate-x-0">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+        </svg>
+      </div>
+    </button>
+  );
+};
+/* -------------------------------------------------------------------------- */
+/*                                Page shell                                 */
+/* -------------------------------------------------------------------------- */
+export default function DashboardPage() {
+  const { currentUser } = useAuth();
+  const [isCreateDeckModalOpen, setCreateDeckModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'decks' | 'quiz' | 'stats' | 'settings' | 'deck-detail' | 'deck-creation'>('dashboard');
+  const [selectedDeck, setSelectedDeck] = useState<Deck | null>(null);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [decksList, setDecksList] = useState<Deck[]>([]);
+  const [isLoadingDecks, setIsLoadingDecks] = useState(true);
+
+  useEffect(() => {
+    const loadDecks = async () => {
+      if (!currentUser) {
+        setDecksList([]);
+        setIsLoadingDecks(false);
+        return;
+      }
+      try {
+        setIsLoadingDecks(true);
+        const userDecks = await decks.getDecks(currentUser.id);
+        setDecksList(userDecks);
+      } catch (err) {
+        console.error('Erreur lors du chargement des decks:', err);
+      } finally {
+        setIsLoadingDecks(false);
+      }
+    };
+
+    loadDecks();
+  }, [currentUser]);
+
+  const handleDeckCreated = (newDeck: Deck) => {
+    setDecksList(prev => [newDeck, ...prev]);
+    setActiveTab('decks'); // Switch to decks view after creation
+  };
+
+  const handleDeckDeleted = (deckId: string) => {
+    setDecksList(prev => prev.filter(deck => deck.id !== deckId));
+  };
+
+  const handleDeckUpdated = (updatedDeck: Deck) => {
+    setDecksList(prev => prev.map(deck => (deck.id === updatedDeck.id ? updatedDeck : deck)));
+  };
+
+  const handleDeckClick = async (deck: Deck) => {
+    setSelectedDeck(deck);
+    setActiveTab('deck-detail');
+    
+    // Afficher toutes les propriétés du deck pour débogage
+    console.log('Deck sélectionné:', JSON.stringify(deck, null, 2));
+    
+    if (deck.pdf_file_path) {
+      console.log('Chemin PDF stocké:', deck.pdf_file_path);
+      console.log('Tentative de récupération depuis le bucket:', 'pdfs');
+      
+      try {
+        // Utiliser directement createSignedUrl au lieu de getPublicUrl
+        // pour contourner les restrictions de politique d'accès
+        const { data: signedData, error } = await supabase.storage
+          .from('pdfs')
+          .createSignedUrl(deck.pdf_file_path, 3600); // URL valide pour 1 heure
+          
+        if (error) {
+          console.error('Erreur lors de la création de l\'URL signée:', error);
+          setPdfUrl(null);
+          return;
+        }
+        
+        if (signedData && signedData.signedUrl) {
+          console.log('URL signée obtenue:', signedData.signedUrl);
+          setPdfUrl(signedData.signedUrl);
+        } else {
+          console.error('Impossible d\'obtenir une URL signée');
+          setPdfUrl(null);
+        }
+      } catch (error) {
+        console.error('Erreur lors de la récupération de l\'URL du PDF:', error);
+        setPdfUrl(null);
+      }
+    } else {
+      console.log('Aucun chemin PDF stocké pour ce deck');
+      setPdfUrl(null);
+    }
+  };
+
+  const handleBackToDecks = () => {
+    setSelectedDeck(null);
+    setActiveTab('decks');
+  };
+
+  const renderView = () => {
+    switch (activeTab) {
+            case 'dashboard':
+        return <DashboardHomeView onOpenCreateDeckModal={() => setCreateDeckModalOpen(true)} deckCount={decksList.length} />;
+            case 'decks':
+        return (
+          <DecksView
+            initialDecks={decksList}
+            isLoading={isLoadingDecks}
+            onDeckClick={handleDeckClick}
+            onDeckDeleted={handleDeckDeleted}
+            onDeckUpdated={handleDeckUpdated}
+            onOpenCreateDeckModal={() => setCreateDeckModalOpen(true)}
+          />
+        );
+      case 'deck-detail':
+        return selectedDeck ? <DeckDetailView deck={selectedDeck} onBack={handleBackToDecks} onDeckDeleted={handleDeckDeleted} onDeckUpdated={handleDeckUpdated} pdfUrl={pdfUrl} /> : null;
+      case 'quiz':
+        return <QuizView />;
+      case 'stats':
+        return <StatsView />;
+      case 'settings':
+        return <SettingsView />;
+      default:
+        return null;
     }
   };
 
   return (
     <ProtectedRoute>
-      <div className="flex h-screen bg-gray-100 overflow-hidden dashboard-layout">
-        {/* Sidebar */}
-        <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}>
-          
-          {/* Sidebar Header */}
-          <div className="flex items-center justify-center h-20 px-6 border-b border-gray-200 relative">
-            <div className="text-center">
-              <div className="text-3xl font-bold bg-gradient-to-r from-primary-500 to-secondary-500 bg-clip-text text-transparent">
-                OptiLearn
-              </div>
-            </div>
-            <button
-              onClick={() => setSidebarOpen(false)}
-              className="lg:hidden absolute right-4 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-
-
-
-          {/* Navigation */}
-          <nav className="mt-8 px-4">
-            <div className="space-y-3">
-              {sidebarItems.map((item) => {
-                // Consider "Mes Decks" as active when in DeckDetail view
-                const isActive = activeView === item.name || 
-                  (item.name === 'Mes Decks' && activeView === 'DeckDetail');
-                
-                return (
-                  <button
-                    key={item.name}
-                    onClick={() => navigateToView(item.name)}
-                    className={`flex items-center w-full px-4 py-3 rounded-xl transition-all duration-200 ease-in-out group ${
-                      isActive
-                        ? 'bg-primary-50'
-                        : 'hover:bg-gray-100'
-                    }`}
-                  >
-                    <div className={`mr-4 transition-colors duration-200 ${isActive ? 'text-primary-700' : 'text-gray-400 group-hover:text-gray-600'}`}>{item.icon}</div>
-                    <span className={`font-semibold transition-colors duration-200 ${isActive ? 'text-primary-700' : 'text-gray-600 group-hover:text-gray-700'}`}>{item.name}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </nav>
-
-          {/* Logout Button */}
-          <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
-            >
-              <svg className="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-              Déconnexion
-            </button>
-          </div>
-        </div>
-
-        {/* Overlay for mobile */}
-        {sidebarOpen && (
-          <div 
-            className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" 
-            onClick={() => setSidebarOpen(false)}
-          ></div>
-        )}
-
-        {/* Main Content */}
-        <div className="flex-1 flex flex-col overflow-hidden lg:ml-0">
-          {/* Top Bar */}
-          <div className="flex items-center justify-between h-16 px-6 bg-white border-b border-gray-200 lg:hidden">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-            <div className="text-lg font-bold bg-gradient-to-r from-primary-500 to-secondary-500 bg-clip-text text-transparent">
-              OptiLearn
-            </div>
-            <div className="w-8"></div> {/* Spacer */}
-          </div>
-
-          {/* Main Content Area */}
-          <main className="flex-1 overflow-y-auto">
-            <div className="min-h-full">
-              {renderContent()}
-            </div>
-          </main>
-        </div>
+      <div className="flex h-screen bg-slate-50 dark:bg-slate-950">
+        <Sidebar
+          activeView={activeTab}
+          onChangeView={(view) => {
+            // When navigating back to the main 'decks' view, reset the selected deck.
+            if (view === 'decks' && selectedDeck) {
+              setSelectedDeck(null);
+            }
+            setActiveTab(view);
+          }}
+        />
+        <main className="flex-1 overflow-y-auto ml-20 md:ml-60 bg-white dark:bg-slate-950">
+          {renderView()}
+        </main>
       </div>
 
-      {/* Le DeckDetailView est maintenant géré via activeView et renderContent */}
-
-      <CreateDeckModal 
-        isOpen={isCreateDeckModalOpen} 
-        onClose={() => setIsCreateDeckModalOpen(false)} 
+      {/* Modal */}
+      <NewCreateDeckModal
+        isOpen={isCreateDeckModalOpen}
+        onClose={() => setCreateDeckModalOpen(false)}
+        onDeckCreated={handleDeckCreated}
       />
     </ProtectedRoute>
   );

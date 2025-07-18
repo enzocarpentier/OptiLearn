@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import DetailedFooter from '@/components/DetailedFooter';
+import Header from '@/components/Header';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function Home() {
@@ -45,8 +46,9 @@ export default function Home() {
   }
   return (
     <>
+      <Header />
       {/* Hero Section - Pleine hauteur */}
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white -mt-20 flex items-center">
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white pt-20 flex items-center">
         <main className="max-w-7xl mx-auto px-6 py-20 w-full">
           <div className="text-center space-y-8">
             <h1 className="text-6xl md:text-7xl font-bold tracking-tight">

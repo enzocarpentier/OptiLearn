@@ -8,7 +8,9 @@ export default function LoginPage() {
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
   
-  // Utiliser le hook useAuthModal seulement après le montage du composant
+  // Appeler le hook au niveau supérieur du composant
+  const { openModal } = useAuthModal();
+  
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -16,8 +18,6 @@ export default function LoginPage() {
   useEffect(() => {
     if (isMounted) {
       try {
-        // Accéder au contexte uniquement après le montage
-        const { openModal } = useAuthModal();
         // Ouvre la modale de connexion
         openModal('login');
         // Redirige vers la page d'accueil en arrière-plan
@@ -28,7 +28,7 @@ export default function LoginPage() {
         router.replace('/');
       }
     }
-  }, [isMounted, router]);
+  }, [isMounted, router, openModal]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">

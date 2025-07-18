@@ -2,6 +2,46 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+  .highlight-pulse {
+    animation: highlight-pulse-animation 2.5s ease-in-out;
+  }
+
+  @keyframes highlight-pulse-animation {
+    0% {
+      background-color: transparent;
+      box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7);
+    }
+    50% {
+      background-color: rgba(99, 102, 241, 0.1);
+      box-shadow: 0 0 0 10px rgba(99, 102, 241, 0);
+    }
+    100% {
+      background-color: transparent;
+      box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
+    }
+  }
+
+  .deck-tabs-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Apple-style subtle animations and effects */
+  .apple-tab-button {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  
+  .apple-tab-button:active {
+    transform: scale(0.98);
+  }
+  
+  .apple-tab-container {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+}
+
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;

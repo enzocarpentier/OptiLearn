@@ -111,7 +111,7 @@ export default function DeckDetailView({ deck, onBack }: DeckDetailViewProps) {
           </button>
           <h1 className="text-xl font-bold text-gray-900 mt-1 truncate" title={deck.name}>{deck.name}</h1>
         </div>
-        <span className="text-xs text-gray-500 self-end">Modifié le {new Date(deck.modified_at).toLocaleDateString('fr-FR')}</span>
+        {/* La date de modification a été supprimée */}
       </div>
 
       {/* Layout principal */}

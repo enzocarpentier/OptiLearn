@@ -1,0 +1,518 @@
+'use client';
+
+import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import { useState, useEffect } from 'react';
+import CreateDeckModal from '@/components/CreateDeckModal';
+import DecksView from '@/components/DecksView';
+import { ProfileSettingsView } from './ProfileSettingsView';
+import { PasswordSettingsView } from './PasswordSettingsView';
+import { AppearanceSettingsView } from './AppearanceSettingsView';
+import { DangerZoneView } from './DangerZoneView';
+
+import { decks } from '@/lib/supabase';
+
+
+// --- View Components ---
+
+interface CreateDeckModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onDeckCreated: (deck: any) => void;
+}
+
+const DashboardHomeView = ({ onOpenCreateDeckModal }: { onOpenCreateDeckModal: () => void }) => {
+  const { currentUser } = useAuth();
+  const [deckCount, setDeckCount] = useState(0);
+
+  useEffect(() => {
+    const fetchDeckCount = async () => {
+      if (currentUser) {
+        try {
+          const userDecks = await decks.getDecks(currentUser.id);
+          setDeckCount(userDecks.length);
+        } catch (error) {
+          console.error('Erreur lors de la récupération des decks:', error);
+        }
+      }
+    };
+
+    fetchDeckCount();
+  }, [currentUser]);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+      {/* Header avec effet de verre */}
+      <div className="sticky top-0 z-40 backdrop-blur-xl bg-white/80 border-b border-white/20 shadow-lg">
+        <div className="max-w-7xl mx-auto px-8 h-16 flex items-center">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 w-full">
+            <div>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent">
+                Tableau de bord
+              </h1>
+              <p className="text-slate-600 text-sm">
+                Bienvenue ! Gérez vos decks et suivez vos progrès
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="max-w-7xl mx-auto px-8 py-8">
+        {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="bg-white dark:bg-slate-800/50 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
+          <div className="flex items-center">
+            <div className="w-11 h-11 bg-blue-100 dark:bg-blue-900/40 rounded-lg flex items-center justify-center">
+              <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Decks créés</p>
+              <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{deckCount}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-slate-800/50 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
+          <div className="flex items-center">
+            <div className="w-11 h-11 bg-green-100 dark:bg-green-900/40 rounded-lg flex items-center justify-center">
+              <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Quiz Complétés</p>
+              <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">0</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-slate-800/50 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
+          <div className="flex items-center">
+            <div className="w-11 h-11 bg-orange-100 dark:bg-orange-900/40 rounded-lg flex items-center justify-center">
+              <svg className="w-6 h-6 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Temps d'étude</p>
+              <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">0h</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-slate-800/50 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
+          <div className="flex items-center">
+            <div className="w-11 h-11 bg-indigo-100 dark:bg-indigo-900/40 rounded-lg flex items-center justify-center">
+              <svg className="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Score Moyen</p>
+              <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">-%</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        {/* Upload de PDF */}
+        <div className="bg-white dark:bg-slate-800/50 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/40 rounded-lg flex items-center justify-center">
+              <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+            </div>
+          </div>
+          <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">
+            Créer un Deck
+          </h3>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mb-4">
+            Téléchargez un document pour créer un nouveau deck de révision.
+          </p>
+          <button 
+            onClick={onOpenCreateDeckModal}
+            className="w-full px-4 py-2 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 transition-colors"
+          >
+            Créer un nouveau deck
+          </button>
+        </div>
+
+        {/* Quiz Rapide */}
+        <div className="bg-white dark:bg-slate-800/50 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 bg-green-100 dark:bg-green-900/40 rounded-lg flex items-center justify-center">
+              <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+              Bientôt disponible
+            </span>
+          </div>
+          <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">
+            Quiz Rapide
+          </h3>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mb-4">
+            Démarrez un quiz rapide pour réviser vos derniers cours.
+          </p>
+          <button 
+            disabled
+            className="w-full px-4 py-2 bg-slate-200 dark:bg-slate-700/50 text-slate-400 dark:text-slate-500 rounded-lg font-semibold cursor-not-allowed"
+          >
+            Commencer un quiz
+          </button>
+        </div>
+
+        {/* Révision Intelligente */}
+        <div className="bg-white dark:bg-slate-800/50 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/40 rounded-lg flex items-center justify-center">
+              <svg className="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+              Bientôt disponible
+            </span>
+          </div>
+          <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">
+            IA Adaptative
+          </h3>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mb-4">
+            L'IA s'adapte à votre niveau et identifie vos lacunes.
+          </p>
+          <button 
+            disabled
+            className="w-full px-4 py-2 bg-slate-200 dark:bg-slate-700/50 text-slate-400 dark:text-slate-500 rounded-lg font-semibold cursor-not-allowed"
+          >
+            Révision personnalisée
+          </button>
+        </div>
+      </div>
+
+      {/* Recent Activity - Empty State */}
+      <div className="bg-white dark:bg-slate-800/50 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-8">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">Activité Récente</h2>
+          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+            Bientôt disponible
+          </span>
+        </div>
+        <div className="text-center py-12">
+          <div className="relative mx-auto w-20 h-20 mb-6">
+            <div className="absolute inset-0 bg-slate-200 dark:bg-slate-700 rounded-full opacity-50"></div>
+            <div className="absolute inset-2 bg-slate-300 dark:bg-slate-800 rounded-full flex items-center justify-center shadow-inner">
+              <svg className="w-8 h-8 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+          </div>
+          <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-2">
+            Aucune activité récente
+          </h3>
+          <p className="text-slate-500 dark:text-slate-400">Vos dernières actions apparaîtront ici.</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Composants pour les autres vues (placeholders pour l'instant)
+const QuizView = () => (
+  <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+    {/* Header avec effet de verre */}
+    <div className="sticky top-0 z-40 backdrop-blur-xl bg-white/80 border-b border-white/20 shadow-lg">
+      <div className="max-w-7xl mx-auto px-8 h-16 flex items-center">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 w-full">
+          <div>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent">
+              Quiz
+            </h1>
+            <p className="text-slate-600 text-sm">
+              Testez vos connaissances avec nos quiz interactifs
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div className="max-w-7xl mx-auto px-8 py-8">
+    <div className="bg-white dark:bg-slate-800/50 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-8">
+      <div className="text-center py-12">
+        <div className="w-16 h-16 bg-green-100 dark:bg-green-900/40 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg className="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-2">Quiz bientôt disponible</h3>
+        <p className="text-slate-500 dark:text-slate-400">Cette fonctionnalité sera disponible prochainement.</p>
+      </div>
+    </div>
+  </div>
+);
+
+const StatsView = () => (
+  <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+    {/* Header avec effet de verre */}
+    <div className="sticky top-0 z-40 backdrop-blur-xl bg-white/80 border-b border-white/20 shadow-lg">
+      <div className="max-w-7xl mx-auto px-8 h-16 flex items-center">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 w-full">
+          <div>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent">
+              Statistiques
+            </h1>
+            <p className="text-slate-600 text-sm">
+              Suivez vos progrès et analysez vos performances
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div className="max-w-7xl mx-auto px-8 py-8">
+      <div className="bg-white dark:bg-slate-800/50 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-8">
+        <div className="text-center py-12">
+          <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/40 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-2">Statistiques bientôt disponibles</h3>
+          <p className="text-slate-500 dark:text-slate-400">Cette fonctionnalité sera disponible prochainement.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const SettingsView = () => {
+  const { currentUser, logout } = useAuth();
+  const [activeSettingsTab, setActiveSettingsTab] = useState('profile');
+
+  const settingsTabs = [
+    { id: 'profile', name: 'Profil', icon: '👤' },
+    { id: 'security', name: 'Sécurité', icon: '🔒' },
+    { id: 'appearance', name: 'Apparence', icon: '🎨' },
+    { id: 'danger', name: 'Zone de danger', icon: '⚠️' },
+  ];
+
+  const renderSettingsContent = () => {
+    switch (activeSettingsTab) {
+      case 'profile':
+        return <ProfileSettingsView user={currentUser} logout={logout} />;
+      case 'security':
+        return <PasswordSettingsView />;
+      case 'appearance':
+        return <AppearanceSettingsView />;
+      case 'danger':
+        return <DangerZoneView />;
+      default:
+        return <ProfileSettingsView user={currentUser} logout={logout} />;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+      {/* Header avec effet de verre */}
+      <div className="sticky top-0 z-40 backdrop-blur-xl bg-white/80 border-b border-white/20 shadow-lg">
+        <div className="max-w-7xl mx-auto px-8 h-16 flex items-center">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 w-full">
+            <div>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent">
+                Paramètres
+              </h1>
+              <p className="text-slate-600 text-sm">
+                Personnalisez votre expérience OptiLearn
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="max-w-7xl mx-auto px-8 py-8">
+        <div className="flex flex-col lg:flex-row gap-8">
+        {/* Navigation des paramètres */}
+        <div className="lg:w-64 flex-shrink-0">
+          <nav className="bg-white dark:bg-slate-800/50 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-2">
+            {settingsTabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveSettingsTab(tab.id)}
+                className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors mb-1 ${
+                  activeSettingsTab === tab.id
+                    ? 'bg-primary-100 dark:bg-primary-900/40 text-primary-600 dark:text-primary-300'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50'
+                }`}
+              >
+                <span className="mr-3 text-lg">{tab.icon}</span>
+                {tab.name}
+              </button>
+            ))}
+          </nav>
+        </div>
+
+        {/* Contenu des paramètres */}
+        <div className="flex-1">
+          <div className="bg-white dark:bg-slate-800/50 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-8">
+            {renderSettingsContent()}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default function DashboardPage() {
+  const [isCreateDeckModalOpen, setCreateDeckModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('dashboard');
+
+  const handleDeckCreated = (deck: any) => {
+    setCreateDeckModalOpen(false);
+  };
+
+  const renderActiveView = () => {
+    switch (activeTab) {
+      case 'dashboard':
+        return <DashboardHomeView onOpenCreateDeckModal={() => setCreateDeckModalOpen(true)} />;
+      case 'decks':
+        return <DecksView />;
+      case 'quiz':
+        return <QuizView />;
+      case 'stats':
+        return <StatsView />;
+      case 'settings':
+        return <SettingsView />;
+      default:
+        return <DashboardHomeView onOpenCreateDeckModal={() => setCreateDeckModalOpen(true)} />;
+    }
+  };
+
+  return (
+    <ProtectedRoute>
+      <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900">
+        {/* Sidebar personnalisée */}
+        <aside className="w-52 flex-shrink-0 bg-white dark:bg-slate-900/80 border-r border-slate-200 dark:border-slate-800 flex flex-col">
+          <div className="h-16 flex items-center justify-center px-4 border-b border-slate-200 dark:border-slate-800">
+            <button
+              onClick={() => setActiveTab('dashboard')}
+              className="group hover:scale-105 transition-transform duration-200 cursor-pointer"
+            >
+              <span className="text-2xl font-bold bg-gradient-to-r from-primary-500 to-secondary-500 bg-clip-text text-transparent group-hover:from-primary-600 group-hover:to-secondary-600 transition-all duration-200">
+                OptiLearn
+              </span>
+            </button>
+          </div>
+          <nav className="flex-1 px-4 py-4 space-y-2">
+            <button
+              onClick={() => setActiveTab('dashboard')}
+              className={`flex items-center w-full px-3 py-2.5 rounded-lg transition-colors text-sm font-medium ${
+                activeTab === 'dashboard'
+                  ? 'bg-primary-100/60 dark:bg-primary-900/40 text-primary-600 dark:text-primary-300'
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800'
+              }`}
+            >
+              <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <rect width="7" height="9" x="3" y="3" rx="1" />
+                <rect width="7" height="5" x="14" y="3" rx="1" />
+                <rect width="7" height="9" x="3" y="14" rx="1" />
+                <rect width="7" height="5" x="14" y="14" rx="1" />
+              </svg>
+              Tableau de bord
+            </button>
+            <button
+              onClick={() => setActiveTab('decks')}
+              className={`flex items-center w-full px-3 py-2.5 rounded-lg transition-colors text-sm font-medium ${
+                activeTab === 'decks'
+                  ? 'bg-primary-100/60 dark:bg-primary-900/40 text-primary-600 dark:text-primary-300'
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800'
+              }`}
+            >
+              <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" x2="8" y1="13" y2="13" />
+                <line x1="16" x2="8" y1="17" y2="17" />
+                <line x1="10" x2="8" y1="9" y2="9" />
+              </svg>
+              Mes Decks
+            </button>
+            <button
+              onClick={() => setActiveTab('quiz')}
+              className={`flex items-center w-full px-3 py-2.5 rounded-lg transition-colors text-sm font-medium ${
+                activeTab === 'quiz'
+                  ? 'bg-primary-100/60 dark:bg-primary-900/40 text-primary-600 dark:text-primary-300'
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800'
+              }`}
+            >
+              <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                <path d="M12 17h.01" />
+              </svg>
+              Quiz
+            </button>
+            <button
+              onClick={() => setActiveTab('stats')}
+              className={`flex items-center w-full px-3 py-2.5 rounded-lg transition-colors text-sm font-medium ${
+                activeTab === 'stats'
+                  ? 'bg-primary-100/60 dark:bg-primary-900/40 text-primary-600 dark:text-primary-300'
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800'
+              }`}
+            >
+              <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <line x1="12" x2="12" y1="20" y2="10" />
+                <line x1="18" x2="18" y1="20" y2="4" />
+                <line x1="6" x2="6" y1="20" y2="16" />
+              </svg>
+              Statistiques
+            </button>
+            <button
+              onClick={() => setActiveTab('settings')}
+              className={`flex items-center w-full px-3 py-2.5 rounded-lg transition-colors text-sm font-medium ${
+                activeTab === 'settings'
+                  ? 'bg-primary-100/60 dark:bg-primary-900/40 text-primary-600 dark:text-primary-300'
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800'
+              }`}
+            >
+              <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 0 2l-.15.08a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1 0-2l.15-.08a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              Paramètres
+            </button>
+          </nav>
+          <div className="px-4 py-4 border-t border-slate-200 dark:border-slate-800">
+            <button
+              onClick={() => {
+                // Logique de déconnexion ici
+                window.location.href = '/';
+              }}
+              className="flex items-center w-full px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors"
+            >
+              <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" x2="9" y1="12" y2="12" />
+              </svg>
+              Déconnexion
+            </button>
+          </div>
+        </aside>
+
+        {/* Contenu principal */}
+        <main className="flex-1">
+          {renderActiveView()}
+        </main>
+      </div>
+      
+      <CreateDeckModal 
+        isOpen={isCreateDeckModalOpen} 
+        onClose={() => setCreateDeckModalOpen(false)} 
+        onDeckCreated={handleDeckCreated}
+      />
+    </ProtectedRoute>
+  );
+}

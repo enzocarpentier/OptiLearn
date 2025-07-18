@@ -83,16 +83,16 @@ export default function SignUpForm() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">Prénom</label>
-                <input id="firstName" name="firstName" type="text" autoComplete="given-name" required className="w-full px-3 py-2 border border-gray-300 rounded-lg" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+                <input id="firstName" name="firstName" type="text" autoComplete="given-name" required className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
             </div>
             <div>
                 <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">Nom</label>
-                <input id="lastName" name="lastName" type="text" autoComplete="family-name" required className="w-full px-3 py-2 border border-gray-300 rounded-lg" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+                <input id="lastName" name="lastName" type="text" autoComplete="family-name" required className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500" value={lastName} onChange={(e) => setLastName(e.target.value)} />
             </div>
         </div>
         <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Adresse e-mail</label>
-            <input id="email" name="email" type="email" autoComplete="email" required className="w-full px-3 py-2 border border-gray-300 rounded-lg" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <input id="email" name="email" type="email" autoComplete="email" required className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500" value={email} onChange={(e) => setEmail(e.target.value)} />
         </div>
         <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
@@ -103,7 +103,7 @@ export default function SignUpForm() {
                     type={showPassword ? "text" : "password"} 
                     autoComplete="new-password" 
                     required 
-                    className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg" 
+                    className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500" 
                     value={password} 
                     onChange={(e) => setPassword(e.target.value)} 
                 />
@@ -215,7 +215,7 @@ export default function SignUpForm() {
                     type={showConfirmPassword ? "text" : "password"} 
                     autoComplete="new-password" 
                     required 
-                    className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg" 
+                    className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500" 
                     value={confirmPassword} 
                     onChange={(e) => setConfirmPassword(e.target.value)} 
                 />

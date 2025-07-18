@@ -23,13 +23,14 @@ export function getSupabaseConfig() {
 
 // Types pour l'authentification
 export interface User {
-  id: string
-  email: string
+  id: string;
+  email?: string;
   user_metadata: {
-    firstName?: string
-    lastName?: string
-    full_name?: string
-  }
+    firstName?: string;
+    lastName?: string;
+    full_name?: string;
+    avatar_url?: string;
+  };
 }
 
 export interface AuthError {
@@ -154,7 +155,7 @@ export const decks = {
   ): Promise<Deck> {
     const { data, error } = await supabase
       .from('decks')
-      .insert({ 
+      .insert({
         ...deck,
         created_at: new Date().toISOString(),
         modified_at: new Date().toISOString(),
@@ -168,6 +169,32 @@ export const decks = {
     }
 
     return data;
+  },
+
+  // Créer un deck avec un PDF en une seule transaction
+  async createDeckWithPDF(
+    deckData: Omit<Deck, 'id' | 'created_at' | 'modified_at'>,
+    pdfFile: File,
+    userId: string
+  ): Promise<Deck> {
+    // 1. Créer le deck initial pour obtenir un ID
+    const newDeck = await this.createDeck(deckData);
+
+    // 2. Si le deck est créé, uploader le PDF et l'associer
+    if (newDeck && newDeck.id) {
+      try {
+        const updatedDeck = await this.uploadPDF(newDeck.id, pdfFile, userId);
+        return updatedDeck;
+      } catch (uploadError) {
+        // En cas d'échec de l'upload, supprimer le deck pour éviter les orphelins
+        console.error("L'upload du PDF a échoué. Annulation de la création du deck...", uploadError);
+        await this.deleteDeck(newDeck.id);
+        // Propager l'erreur pour que l'UI puisse réagir
+        throw new Error("La création du deck a échoué car le fichier PDF n'a pas pu être uploadé.");
+      }
+    } else {
+      throw new Error("La création de l'entrée initiale du deck a échoué.");
+    }
   },
 
   // Mettre à jour un deck
@@ -250,49 +277,51 @@ export const decks = {
   },
 
   // Uploader un PDF et mettre à jour le deck
-  async uploadPDF(deckId: string, file: File, userId: string): Promise<string> {
-    // Nettoyer le nom du fichier pour le rendre compatible avec Supabase Storage
+  async uploadPDF(deckId: string, file: File, userId: string): Promise<Deck> {
     const sanitizeFileName = (fileName: string): string => {
       return fileName
-        .normalize('NFD') // Sépare les accents des lettres
-        .replace(/[\u0300-\u036f]/g, '') // Supprime les accents
-        .replace(/\s+/g, '_') // Remplace les espaces par des underscores
-        .replace(/[^a-zA-Z0-9_.-]/g, ''); // Supprime les caractères non autorisés
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/\s+/g, '_')
+        .replace(/[^a-zA-Z0-9_.-]/g, '');
     };
 
     const sanitizedFileName = sanitizeFileName(file.name);
     const filePath = `${userId}/${deckId}/${sanitizedFileName}`;
 
-    // Uploader le fichier
     const { error: uploadError } = await supabase.storage
       .from('pdfs')
       .upload(filePath, file, { upsert: true });
 
     if (uploadError) {
-      console.error('Erreur lors de l\'upload du PDF:', JSON.stringify(uploadError, null, 2));
+      console.error("Erreur lors de l'upload du PDF:", uploadError);
       throw new Error(`Erreur d'upload PDF: ${uploadError.message}`);
     }
 
-    // Mettre à jour la table des decks avec les infos du PDF
-    const { error: updateError } = await supabase
+    const { data: updatedDeck, error: updateError } = await supabase
       .from('decks')
       .update({
-        pdf_file_path: filePath, // Utiliser le chemin avec le nom nettoyé
-        pdf_file_name: file.name, // Conserver le nom original pour l'affichage
+        pdf_file_path: filePath,
+        pdf_file_name: file.name,
         pdf_file_size: file.size,
         pdf_upload_date: new Date().toISOString(),
         modified_at: new Date().toISOString(),
       })
-      .eq('id', deckId);
+      .eq('id', deckId)
+      .select()
+      .single();
 
     if (updateError) {
       console.error('Erreur lors de la mise à jour du deck:', updateError);
-      // Tenter de supprimer le fichier uploadé en cas d'erreur
       await supabase.storage.from('pdfs').remove([filePath]);
       throw updateError;
     }
 
-    return filePath;
+    if (!updatedDeck) {
+      throw new Error("La mise à jour du deck après l'upload n'a retourné aucune donnée.");
+    }
+
+    return updatedDeck;
   },
 
   // Obtenir l'URL signée pour un PDF

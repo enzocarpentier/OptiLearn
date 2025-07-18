@@ -75,7 +75,7 @@ export default function LoginForm() {
         )}
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Adresse e-mail</label>
-          <input id="email" name="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+          <input id="email" name="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500" />
         </div>
         <div>
           <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
@@ -88,7 +88,7 @@ export default function LoginForm() {
               required 
               value={password} 
               onChange={(e) => setPassword(e.target.value)} 
-              className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg" 
+              className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500" 
             />
             <button
               type="button"
@@ -123,15 +123,25 @@ export default function LoginForm() {
         </div>
         
         <div className="flex items-center">
-          <input
-            id="remember-me"
-            name="remember-me"
-            type="checkbox"
-            className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-            checked={rememberMe}
-            onChange={(e) => setRememberMe(e.target.checked)}
-          />
-          <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
+          <button
+            type="button"
+            onClick={() => setRememberMe(!rememberMe)}
+            className={`h-4 w-4 rounded border-2 flex items-center justify-center transition-colors duration-200 ${
+              rememberMe 
+                ? 'bg-primary-600 border-primary-600' 
+                : 'bg-white border-gray-300 hover:border-gray-400'
+            }`}
+          >
+            {rememberMe && (
+              <svg className="h-3 w-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+              </svg>
+            )}
+          </button>
+          <label 
+            onClick={() => setRememberMe(!rememberMe)}
+            className="ml-2 block text-sm text-gray-700 cursor-pointer select-none"
+          >
             Se souvenir de moi
           </label>
         </div>
