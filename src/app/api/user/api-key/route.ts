@@ -111,6 +111,9 @@ export async function GET() {
     
     // Obtenir l'utilisateur avec authentification + fallback
     const userInfo = await getUserWithFallback();
+    if (!userInfo?.isAuthenticated) {
+      return NextResponse.json({ error: 'Unauthenticated' }, { status: 401 });
+    }
 
     const supabase = createServiceSupabaseClient();
     
@@ -168,6 +171,9 @@ export async function POST(request: Request) {
     
     // Obtenir l'utilisateur avec authentification + fallback
     const userInfo = await getUserWithFallback();
+    if (!userInfo?.isAuthenticated) {
+      return NextResponse.json({ error: 'Unauthenticated' }, { status: 401 });
+    }
 
     const { apiKey } = await request.json();
     
@@ -281,6 +287,9 @@ export async function DELETE() {
     console.log('=== DELETE /api/user/api-key ===');
 
     const userInfo = await getUserWithFallback();
+    if (!userInfo?.isAuthenticated) {
+      return NextResponse.json({ error: 'Unauthenticated' }, { status: 401 });
+    }
     const supabase = createServiceSupabaseClient();
 
     const { error: updateError } = await supabase
